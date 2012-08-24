@@ -1,0 +1,71 @@
+/*body{
+    font-family:"Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif; 
+    font-size:11px;
+}*/
+
+a.button{
+    background:url(../img/button.gif);
+    display:block;
+    color:#555555;
+    font-weight:bold;
+    height:30px;
+    line-height:29px;
+    margin-bottom:14px;
+    text-decoration:none;
+    width:191px;
+}
+a:hover.button{
+    color:#0066CC;
+}
+ 
+/* -------------------- */
+/* CLASSES                */
+/* -------------------- */
+    .add{
+        background:url(../img/add.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .delete{
+        background:url(../img/delete.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .user{
+        background:url(../img/user.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .alert{
+        background:url(../img/alert.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .msg{
+        background:url(../img/msg.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .download{
+        background:url(../img/download.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+ 
+    .lens{
+        background:url(../img/lens.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .info{
+        background:url(../img/info.gif) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    .info2{
+        background:url(../img/info2.ico) no-repeat 10px 8px;
+        text-indent:30px;
+        display:block;
+    }
+    
+    
