@@ -24,7 +24,7 @@ AmazonExternalHost = 'ec2-184-72-176-76.compute-1.amazonaws.com'
 DreamhostHost = 'sebastian.seaports2100.org'
 BASE_URL = 'http://%s/sebastian' % (DreamhostHost,)
 AmazonDBHost = 'localhost'
-DreamhostDBHost = 'mysql.geomapps.com'
+DreamhostDBHost = 'mysql.seaports2100.org'
 
 
 def computeCenter():
