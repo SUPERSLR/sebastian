@@ -3,8 +3,15 @@
 # sebastian/model/portprotector.py
 # Optimization model for Port Protector design
 
-# Import Useful Modules
+# Import required modules
 import sys, os
+
+# Switch to custom-compiled Python interpreter
+INTERP = os.path.join(os.environ['HOME'], 'bin', 'python')
+if sys.executable != INTERP:
+    os.execl(INTERP, INTERP, *sys.argv)
+
+# Import Useful Modules
 sys.path.append(os.path.abspath('../'))
 import GeoUtils
 BASE_URL = GeoUtils.constants.BASE_URL
