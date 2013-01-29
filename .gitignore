@@ -1,5 +1,7 @@
 *~
+logs_archive/*
 sebastian/logs/error.log
 sebastian/logs/access.log
 *#
 *.tpl.php
+*.pyc

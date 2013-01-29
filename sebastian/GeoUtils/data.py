@@ -42,7 +42,7 @@ class FormDicts:
                     'Country' : ['select','Country', getCountries(),'country',''],
 		    # I'm taking these out because region is determined by country - Ben P.
                     #'Region' : ['text','Region',[''],'region',''],
-                    #'SubRegion' : ['text','Sub-region',[''],'sub-region','More local region'],
+                    #'SubRegion' : ['text','Sub-region',[''],'sub_region','More local region'],
                     'WaterBody' : ['text','Body of Water',[''],'water_body','Nearest major body of water'],
                     'RiverNames' : ['textarea','River Name(s)',{'cols' : 30,'rows' : 2},'river_names','One per line']
                 },
@@ -67,7 +67,7 @@ class FormDicts:
                     'PopulationSource' : ['text','Population Source',[''],'population_data_source','What\s the source of these data?']
                 },
             'G. Environmental Information' : {
-                    'ReefProtectedArea' : ['radio','Reef/Protected Area Present',{'Yes' : 1,'No' : 0},'reef-protected_area_present',''],
+                    'ReefProtectedArea' : ['radio','Reef/Protected Area Present',{'Yes' : 1,'No' : 0},'reef_protected_area_present',''],
                     'BioSignificantEnviron' : ['radio','Biologically Significant Environment Present',{'Yes' : 1,'No' : 0},'biologically_significant_environment_present',''],
                     'SubaquaticGeology' : ['text','Subaquatic Geology',[''],'subaquatic_geology',''],
                     'SedimentLoad' : ['text','Sediment Load',[''],'sediment_load','cubic meters/hour <em>(* tentative unit)</em>'],

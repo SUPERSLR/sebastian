@@ -14,14 +14,17 @@ BASE_URL = GeoUtils.constants.BASE_URL
 DBhandle = GeoUtils.RDB()
 #DBhandle.setHost(GeoUtils.constants.AmazonHost)
 #DBhandle.connect('uws_ge')
-DBhandle.connect('uws_maps')
+#DBhandle.connect('uws_maps')
+#TEMPORARY!  THIS MUST CHANGE BACK TO uws_maps ONCE DATA IS TRANSFERED
+DBhandle.connect('uws_collect')
 
 
 
 def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
         # Database table information
         table = 'elev_data'
-        dataset = GeoUtils.constants.ElevSrc.GOOGLE
+        dataset = GeoUtils.constants.ElevSrc.GOOGLE30SEC
+        dbq = ""
 
         # Get BBOX boundaries
         west = float(bbox[0])
@@ -62,7 +65,7 @@ def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
 
         # Use a narrower view for this one...
         # If view is shorter than .05 degrees or narrower than .08 degrees, show grid, otherwise, don't
-        if abs(height) < .05 or abs(width) < .08:
+        if abs(height) < .5 or abs(width) < .8:
                 show_grid = True
         else:
                 show_grid = False
@@ -81,10 +84,10 @@ def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
                 dbq = ""
                 for shard in elev_table_list:
                         dbq += union_text
-                        dbq += "(SELECT longitude,latitude,elevation FROM %s_%s_%s WHERE " % (table,shard,dataset,)
+                        dbq += "(SELECT longitude,latitude,round(elevation,3) as elevation FROM %s_%s_%s WHERE " % (table,shard,dataset,)
                         dbq += "longitude <= %s AND longitude >= %s AND " % (east,west)
                         dbq += "latitude <= %s AND latitude >= %s" % (north,south)
-                        dbq += " AND source='google_web_service')"
+                        dbq += " AND source='%s')" % (dataset,)
                         union_text = " UNION "
 
                 # Query database
