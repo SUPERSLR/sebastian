@@ -15,9 +15,19 @@ if __name__ == "__main__":
     DBhandle = GeoUtils.RDB()
     DBhandle.connect('uws_ge')
 
+    dataset_override = ""
+    h_override = ""
+    w_override = ""
+    dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
+    h_override = 0.25
+    w_override = 0.25
+
+    #simulation_equation = GeoUtils.constants.Equations.KMB2
+    simulation_equation = GeoUtils.constants.Equations.BMASW
+
     #IDs, count = DBhandle.query('SELECT DISTINCT portID FROM portprotector')
-    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,map_region,grid_height,grid_width,elev_data FROM portdata')
-    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,map_region,grid_height,grid_width,elev_data FROM portdata where id > 126 and id < 128')
+    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata')
+    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id > 126 and id < 128')
 
     print 'Ports to update:' + str(count)
     print
@@ -30,14 +40,31 @@ if __name__ == "__main__":
     import portprotector
     for port in portdata:
         try:
+            h = 0
+            w = 0
             # Unpack parameters
-            h = port['grid_height']
-            w = port['grid_width']
+            if h_override == "":
+                h = port['grid_height']
+            else :
+                h = h_override
+
+            if w_override == "":
+                w = port['grid_width']
+            else :
+                w = w_override
+
+            #h = port['grid_height']
+            #w = port['grid_width']
 
             if h == 0:
                 h = 0.25
             if w == 0:
                 w = 0.25
+
+            if dataset_override == "":
+                dataset = port['elev_data']
+            else :
+                dataset = dataset_override
 
             portID = port['ID']
             portname = port['name']
@@ -51,10 +78,7 @@ if __name__ == "__main__":
             StartTime = time.time()
 
             portResult = 'failed'
-            ###print 'before optimize'
-            response,error = portprotector.optimize(portID,h,w,GeoUtils.constants.Equations.KMB2,port['elev_data'],port['map_region'])
-#            response,error = portprotector.optimize(portID,h,w,GeoUtils.constants.Equations.BMASW,port['elev_data'])
-            ###print 'after optimize'
+            response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset)
             portResult = 'success'
 
             # Stop clock
@@ -80,7 +104,25 @@ if __name__ == "__main__":
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
 #                response,error = portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
-                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
+                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                print "portID: %s" % (portID,)
+                print "attribution: %s" % ("Keith Mosher",)
+                print "equation: %s" % (simulation_equation,)
+                print "elev_data: %s" % (dataset,)
+                print "avg_elev: %s" % (avg_elev,)
+                # Create path for linestring creation
+                ShortestPath = GeoUtils.Features.Path()
+                ShortestPath.fromPointList(path)
+                print "path_length: %s" % (ShortestPath.length(),)
+                print "path_volume: %s" % (vol,)
+                print "dike_volume: %s" % (dikeVol,)
+                print "core_volume: %s" % (coreVol,)
+                print "toe_volume: %s" % (toeVol,)
+                print "foundation_volume: %s" % (foundVol,)
+                print "armor_volume: %s" % (armorVol,)
+                print "computeCenter: %s" % (GeoUtils.constants.computeCenter(),)
+                print "grid_height: %s" % (h,)
+                print "grid_width: %s" % (w,)
 #                print portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
                 ###print error
                 if error == True:

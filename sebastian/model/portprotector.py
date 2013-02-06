@@ -21,7 +21,7 @@ elevDBhandle.connect('uws_maps')
 #elevDBhandle.connect('uws_ge')
 
 
-def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoUtils.constants.ElevSrc.DEFAULT30SEC,map_region=GeoUtils.constants.RegionSrc.NORTHAMERICA):
+def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoUtils.constants.ElevSrc.DEFAULT30SEC):
     '''
     Create network from elevation grid
 
@@ -33,7 +33,6 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         @param elevdata - elevation data to use for grid as constant in GeoUtils.constants.ElevSrc (default: 30-second SRTM30Plus)
 
     '''
-    #print "<br/>Debug - makeNetwork_01<br/>"
     # Query database for port details
     portq = "SELECT ID,name,latitude,longitude FROM portdata WHERE ID='%s'" % (pid,)
     portdata,portrowcount = DBhandle.query(portq)
@@ -60,6 +59,9 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     north = float(port_lat) + float(h) / 2
     south = float(port_lat) - float(h) / 2
 
+    print "Grid info: latitude: %s, longitude: %s, h: %s, w: %s, dataset: %s" % (port_lat,port_lon,h,w,elev_data,)
+    print "Bounding west: %s, east: %s, north %s, south %s" % (west,east,north,south,)
+
     # Create bounding polygon syntax for SQL
     boundingPoly = "PolyFromText('%s')" % (GeoUtils.makeBoundingPolygon(north,south,east,west),)
 
@@ -76,30 +78,20 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     sedata,serowcount = DBhandle.query(seq)
 
     elev_table_name,error = GeoUtils.constants.getShardTable(port_lat,port_lon,elev_data)
+    print "makeNetwork: elev_table_name %s, %s" % (elev_table_name,error,)
     # If there was an error, return error and message
     if error == True:
         errtxt = elev_table_name
         # Function exits
         return errtxt,True
-    #print "<br/>Debug - makeNetwork_01_1<br/>"
-    # Query database for elevation grid
-#    elevq = "SELECT longitude,latitude,elevation FROM elev_data WHERE "
-#    elevq += "longitude <= %s AND longitude >= %s AND latitude <= %s AND latitude >= %s AND source='%s' ORDER BY latitude, longitude ASC" % \
-#        (east,west,north,south,elev_data)
-#    elevq = "SELECT longitude,latitude,elevation FROM elev_data_"
+
     elevq = "SELECT longitude,latitude,elevation FROM "
-    #elevq += GeoUtils.constants.getShardTable(port_lat,port_lon,elev_data)
     elevq += elev_table_name
-#    elevq += map_region
-#    elevq += "_"
-#    elevq += elev_data
     elevq += " WHERE "
     elevq += "longitude <= %s AND longitude >= %s AND latitude <= %s AND latitude >= %s AND source='%s' ORDER BY latitude, longitude ASC" % \
         (east,west,north,south,elev_data)
-    #print elevq
+
     elevdata,elevrowcount = elevDBhandle.query(elevq)
-    #elevdata,elevrowcount = DBhandle.query(elevq)
-    #print "<br/>Debug - makeNetwork_02<br/>"
 
     # If there are results from the database, process elevation grid
     if elevrowcount == 0:
@@ -167,8 +159,10 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     # Select elevation grid size based on elevation data source
     dr = GeoUtils.constants.ElevSize.get(elev_data)
 
+    print "make network starting grid"
     # Get local distance between points
-    distDiffInit = initPt.distanceFrom(GeoUtils.Features.Point(x=initPt.lon+dr,y=initPt.lat+dr))
+    #distDiffInit = initPt.distanceFrom(GeoUtils.Features.Point(x=initPt.lon+dr,y=initPt.lat+dr))
+    distDiffInit = initPt.distanceFrom(GeoUtils.Features.Point(x=initPt.lon+0.003,y=initPt.lat+0.003))
 
     # Dictionary for grid vertices
     grid = {}
@@ -192,7 +186,8 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                 "elev" : curPt.elev
             }
 
-
+    print "make network finished grid"
+    print grid
     # List of keys to delete because of avoid polygons or parameter exclusion
     del_keys = []
 
@@ -305,7 +300,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 # h - grid height in degrees (Default: 1)
 # eq - design cost equation to use (Default: SUPERSLR Minimum-Criteria Dike Design)
 # elevdata - elevation data to use for grid (Default: 30-second SRTM30Plus grid)
-def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils.constants.ElevSrc.DEFAULT30SEC,map_region=GeoUtils.constants.RegionSrc.NORTHAMERICA):
+def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils.constants.ElevSrc.DEFAULT30SEC):
     '''
     Run Port Protector Optimization
 
@@ -317,10 +312,10 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
         @param elevdata - elevation data to use for grid as constant in GeoUtils.constants.ElevSrc (default: 30-second SRTM30Plus)
 
     '''
-    #print "<br/>Debug - optimize_01<br/>"
+    print "<br/>Debug - optimize_01<br/>"
     # Get grid
-    response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata,map_region)
-    ###print "<br/>Debug - optimize_02_1<br/>"
+    response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata)
+    print "<br/>Debug - optimize_02_1<br/>"
     ###print response
     ###print "<br/>Debug - optimize_02_2<br/>"
     # If there was an error, return error and message
@@ -329,20 +324,21 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
         # Function exits
         return errtxt,True
     # Unpack response
-    ###print "<br/>Debug - optimize_02_2<br/>"
+    print "<br/>Debug - optimize_02_2<br/>"
     (grid,graph,startpts,endpts,bPoly) = response
     ###print "<br/>Debug - optimize_02_3<br/>"
     # Import shortest path algorithm
     import dijkstra
     # For each start point and end point
     optimalPaths = [ dijkstra.shortestPath(graph,start,end) for end in endpts for start in startpts ]
-    ###print "<br/>Debug - optimize_02_4<br/>"
+    print "<br/>Debug - optimize_02_4<br/>"
     # Initialize minimum distance to infinity
     vol = float('inf')
     # Initialize shortest path to false
     sp = False
     # For each path and distance, check to determine if shortest
     for possiblePath in optimalPaths:
+        print "possiblePath"
         if possiblePath == (False,False):
             pass
         elif float(possiblePath[1]) < vol:
@@ -362,7 +358,7 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     armorVol = 0.0
     foundVol = 0.0
     totalVol = 0.0
-    #print "<br/>Debug optimize_02<br/>"
+    print "<br/>Debug optimize_02<br/>"
 ###    print "<table border=1>"
 ###    print "<tr>"
     #print "<td>%f</td>" % (length, )
@@ -374,6 +370,7 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     try:
         prev = False
         for v in sp:
+            print "checking path"
 ###            print "</tr><tr><td colspan=7>%s</td></tr><tr>" % (prev, )
             # add up incremental volumes
             if (eq == GeoUtils.constants.Equations.BMASW or eq == GeoUtils.constants.Equations.SMCDD) and prev:
