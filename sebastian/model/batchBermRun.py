@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# Ben Pedrick
-# A script to run every port with the BMASW design
+# Keith Mosher
+# A script to run every port berm
 
 if __name__ == "__main__":
     import sys, os
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # Import time module to record runtime
     import time
-    import portprotector
+    import berm_model
     for port in portdata:
         try:
             h = 0
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             StartTime = time.time()
 
             portResult = 'failed'
-            response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset)
+            response,error = berm_model.optimize(portID,h,w,simulation_equation,dataset)
             portResult = 'success'
 
             # Stop clock
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
 #                response,error = portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
-                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                response,error = berm_model.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
                 print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)

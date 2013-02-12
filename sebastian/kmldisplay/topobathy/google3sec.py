@@ -14,9 +14,9 @@ BASE_URL = GeoUtils.constants.BASE_URL
 DBhandle = GeoUtils.RDB()
 #DBhandle.setHost(GeoUtils.constants.AmazonHost)
 #DBhandle.connect('uws_ge')
-#DBhandle.connect('uws_maps')
+DBhandle.connect('uws_maps')
 #TEMPORARY!  THIS MUST CHANGE BACK TO uws_maps ONCE DATA IS TRANSFERED
-DBhandle.connect('uws_collect')
+#DBhandle.connect('uws_collect')
 
 
 

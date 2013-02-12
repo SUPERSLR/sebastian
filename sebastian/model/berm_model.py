@@ -1,7 +1,7 @@
 #!/usr/bin/python
-# David Newell
-# sebastian/model/portprotector.py
-# Optimization model for Port Protector design
+# Keith Mosher
+# sebastian/model/berm_model.py
+# Optimization model for Port Protector berm design
 
 # Import Useful Modules
 import sys, os
@@ -67,7 +67,8 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 
     # Query database for associated port polygons
     polyq = "SELECT ID,AsText(feature_geometry) FROM current_features WHERE "
-    polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Model Avoid Polygon') "
+    #polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Model Avoid Polygon') "
+    polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Berm Avoid Polygon') "
     polyq += "AND MBRIntersects(%s,feature_geometry)" % (boundingPoly,)
     polydata,polyrowcount = DBhandle.query(polyq)
 
@@ -409,14 +410,14 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     #placeholder for the processed values of materials
 
-    riprap_volume = -1
-    aggregate_volume = -1
-    rebar_volume = -1
-    cement_volume = -1
-    riprap_weight = -1
-    aggregate_weight = -1
-    rebar_weight = -1
-    cement_weight = -1
+    riprap_volume = -2
+    aggregate_volume = -2
+    rebar_volume = -2
+    cement_volume = -2
+    riprap_weight = -2
+    aggregate_weight = -2
+    rebar_weight = -2
+    cement_weight = -2
 
 
     # Prepare values used to update database
@@ -429,7 +430,7 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,eq,elevdata,computeCenter,grid_height,grid_width):
     #print 'updateDB running'
     '''
-    Update database with portprotector result
+    Update database with berm_model result
 
     Parameters
         @param ge_key - user's identifying key
@@ -454,18 +455,18 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     user = DBhandle.ConnUserName()
 
     # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM portprotector WHERE '
+    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM berm_model WHERE '
     selq += 'portID=%s' % (pid)
     seldata,selrc = DBhandle.query(selq)
 
     for r in seldata:
-        histq = "INSERT INTO portprotector_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
+        histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
         histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(riprap_volume)s','%(aggregate_volume)s','%(rebar_volume)s','%(cement_volume)s','%(riprap_weight)s','%(aggregate_weight)s','%(rebar_weight)s','%(cement_weight)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
 ###        print histq
         histdata,histrc = DBhandle.query(histq)
 
     #delq = 'DELETE FROM portprotector WHERE MBRIntersects(' + bPoly + ',path_geometry)'
-    delq = 'DELETE FROM portprotector WHERE portID=%s' % (pid)
+    delq = 'DELETE FROM berm_model WHERE portID=%s' % (pid)
     deldata,delrc = DBhandle.query(delq)
 
     # Create path for linestring creation
@@ -473,7 +474,7 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     ShortestPath.fromPointList(path)
 
     # Insert shortest path and volume into database
-    insertq = "INSERT INTO portprotector (portID,attribution,avg_elev,path_length,path_volume," +\
+    insertq = "INSERT INTO berm_model (portID,attribution,avg_elev,path_length,path_volume," +\
             "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight," +\
             "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
     insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
