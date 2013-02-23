@@ -138,7 +138,7 @@ if __name__ == "__main__":
 	except:
 		ge_key = ''
 	
-	PolyTypes = ["Port Infrastructure Polygon","Basin Polygon","Model Avoid Polygon","Model StartEnd Polygon"]
+	PolyTypes = ["Port Infrastructure Polygon","Basin Polygon","Model Avoid Polygon","Model StartEnd Polygon","Berm Avoid Polygon"]
 	
 	# Print content-type header
 	print GeoUtils.Interface.ContentType("kml")

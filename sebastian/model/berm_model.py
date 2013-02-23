@@ -111,7 +111,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 
     # Dictionary of possible cross-section equations
     eqns = {
-            GeoUtils.constants.Equations.KMB2 : designs.pieceByPiece,
+            GeoUtils.constants.Equations.KMB2 : designs.multiDikeSingleBermCombo,
             GeoUtils.constants.Equations.BMASW : designs.pieceByPiece,
             GeoUtils.constants.Equations.SMCDD : designs.SMCDD
         }

@@ -114,7 +114,7 @@ class FormDicts:
                     'ID' : ['text','Polygon ID',['readonly'],'ID','You are not permitted to edit this item.'],
                     #'PortID' : ['text','Port ID',[''],'portID','Use caution when editing this polygon\'s port association.'],
                     'PortID' : ['text','Port ID',['readonly'],'portID','You are not permitted to edit this item.'],
-                    'PolyType' : ['select','Polygon Type',{'Port Infrastructure Polygon' : 'Port Infrastructure Polygon' , 'Basin Polygon' : 'Basin Polygon' , 'Model Avoid Polygon' : 'Model Avoid Polygon' ,'Model StartEnd Polygon' : 'Model StartEnd Polygon'},'feature_type','Select the type of polygon'],
+                    'PolyType' : ['select','Polygon Type',{'Port Infrastructure Polygon' : 'Port Infrastructure Polygon' , 'Basin Polygon' : 'Basin Polygon' , 'Model Avoid Polygon' : 'Model Avoid Polygon' ,'Model StartEnd Polygon' : 'Model StartEnd Polygon', 'Berm Avoid Polygon' : 'Berm Avoid Polygon'},'feature_type','Select the type of polygon'],
                     'newKML' : ['textarea','Paste new KML polygon here',{'cols' : 50,'rows' : 6},'feature_geometry','Draw a polygon using Google Earth\'s tools and copy, then paste, here. KML will be parsed automatically for coordinates.'],
                     'PolyArea' : ['text','Polygon Area',['readonly'],'feature_area','square meters. You are not permitted to edit this item.'],
                     'PolyPeri' : ['text','Polygon Perimeter',['readonly'],'feature_perimeter','meters. You are not permitted to edit this item.']

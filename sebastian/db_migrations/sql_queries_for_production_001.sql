@@ -1465,3 +1465,7 @@ insert into uws_maps.elev_data_shard05_noaa_aster_30m (latitude,longitude,elevat
 
 insert into uws_maps.elev_data_shard06_noaa_aster_30m (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_noaa_aster_30m where ((longitude>=119 and longitude<=180) or (longitude>=-180 and longitude<=-179)) and source = 'noaa_aster_30m');
 
+/*
+insert into elev_data_shard02_noaa_aster_30m_temp (latitude, longitude, elevation, source) select latitude, longitude, elevation, source from elev_data_shard02_noaa_aster_30m where id in (select max(id) from elev_data_shard02_noaa_aster_30m group by latitude, longitude having count(latitude) > 1);
+*/
+

@@ -15,6 +15,7 @@ class ElevSrc:
         GOOGLE30SEC = "google_web_service_30sec"
         GOOGLE3SEC = "google_web_service_3sec"
         GOOGLEP3SEC = "google_web_service_point3sec"
+        NOAAASTER30M = "noaa_aster_30m"
 
 class RegionSrc:
         AFRICA = "africa"
@@ -35,6 +36,7 @@ ElevSize = {
       #  ElevSrc.GOOGLEP3SEC : 0.0000833333333,
       #  ElevSrc.GOOGLEP3SEC : 0.00345,
         ElevSrc.GOOGLEP3SEC : 0.0083333333333,
+        ElevSrc.NOAAASTER30M : 0.0002975,
     }
 
 ElevRegions = {
@@ -82,7 +84,7 @@ def computeCenter():
 
 # return the database table holding the lat/lng information for a selected point and data set
 def getShardTable(lat, lng, dataset):
-        if dataset == ElevSrc.GOOGLE or dataset == ElevSrc.DEFAULT30SEC or dataset == ElevSrc.USGS or dataset == ElevSrc.GOOGLE3SEC or dataset == ElevSrc.GOOGLE30SEC or dataset == ElevSrc.GOOGLEP3SEC :
+        if dataset == ElevSrc.GOOGLE or dataset == ElevSrc.DEFAULT30SEC or dataset == ElevSrc.USGS or dataset == ElevSrc.GOOGLE3SEC or dataset == ElevSrc.GOOGLE30SEC or dataset == ElevSrc.GOOGLEP3SEC or dataset == ElevSrc.NOAAASTER30M :
                 shard_name = 'unknown'
                 if lng >= -180 and lng < -120 :
                         shard_name = 'shard01'
@@ -108,7 +110,7 @@ def getShardTable(lat, lng, dataset):
                 return 'dataset invalid', True
 # return the database table holding the lat/lng information for a selected point and data set
 def getAllShardTables(dataset):
-        if dataset == ElevSrc.GOOGLE or dataset == ElevSrc.DEFAULT30SEC or dataset == ElevSrc.USGS or dataset == ElevSrc.GOOGLE3SEC or dataset == ElevSrc.GOOGLE30SEC or dataset == ElevSrc.GOOGLEP3SEC :
+        if dataset == ElevSrc.GOOGLE or dataset == ElevSrc.DEFAULT30SEC or dataset == ElevSrc.USGS or dataset == ElevSrc.GOOGLE3SEC or dataset == ElevSrc.GOOGLE30SEC or dataset == ElevSrc.GOOGLEP3SEC or dataset == ElevSrc.NOAAASTER30M :
                 return ["shard01","shard02","shard03","shard04","shard05","shard06" ], False
         else :
                 print "dataset has not been set up in sharding function"

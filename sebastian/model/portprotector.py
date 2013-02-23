@@ -110,7 +110,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 
     # Dictionary of possible cross-section equations
     eqns = {
-            GeoUtils.constants.Equations.KMB2 : designs.pieceByPiece,
+            GeoUtils.constants.Equations.KMB2 : designs.multiDikeSingleBermCombo,
             GeoUtils.constants.Equations.BMASW : designs.pieceByPiece,
             GeoUtils.constants.Equations.SMCDD : designs.SMCDD
         }
@@ -186,7 +186,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                 "elev" : curPt.elev
             }
 
-    #print "make network finished grid"
+    print "make network finished grid, number of points: %s" % (len(grid))
     #print grid
     # List of keys to delete because of avoid polygons or parameter exclusion
     del_keys = []
@@ -338,7 +338,8 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     sp = False
     # For each path and distance, check to determine if shortest
     for possiblePath in optimalPaths:
-        print "possiblePath"
+ #       print "possiblePath"
+ #       print possiblePath
         if possiblePath == (False,False):
             pass
         elif float(possiblePath[1]) < vol:
@@ -369,11 +370,17 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     try:
         prev = False
+        print "sp"
+        print sp
+        #print graph
         for v in sp:
-            print "checking path"
+#            print "checking path"
 ###            print "</tr><tr><td colspan=7>%s</td></tr><tr>" % (prev, )
             # add up incremental volumes
-            if (eq == GeoUtils.constants.Equations.BMASW or eq == GeoUtils.constants.Equations.SMCDD) and prev:
+            if (eq == GeoUtils.constants.Equations.BMASW or eq == GeoUtils.constants.Equations.SMCDD or eq == GeoUtils.constants.Equations.KMB2) and prev:
+#                print graph[prev][v]
+#                print graph[prev][v]['length']
+#                print graph[prev][v]['elev']
 ###                print "</tr><tr><td colspan=7>%s</td></tr><tr>" % (graph[prev][v], )
                 dikeVol += graph[prev][v]['dikeVol']
                 toeVol += graph[prev][v]['toeVol']
