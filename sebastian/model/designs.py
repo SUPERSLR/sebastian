@@ -332,93 +332,99 @@ def multiDikeSingleBermCombo(length, elev, params):
     elif elev <= -10 and elev >= max_depth :
         #print "deep breakwater"
 
+        # core part 1
+        core_depth = 2. #D25
+        if elev < -25.:
+            core_depth = 2. + (((-elev) - 25.) / 3.) #D25 #=IF(D14<25,2,2+(D14-25)/3)
+
         # leeside_armor_berm
-        leeside_armor_berm_depth = 1 #D95
-        leeside_armor_berm_width_toe = 1 #D96
-        leeside_armor_berm_slope_1v = 1 #D97
-        leeside_armor_berm_width_top = 1 #D98
-        leeside_armor_berm_width_sloped = 1 #D99
-        leeside_armor_berm_width_total = leeside_armor_berm_width_toe + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #D100
+        leeside_armor_berm_depth = 2. #D95
+        leeside_armor_berm_width_toe = 3. #D96
+        leeside_armor_berm_slope_1v = 2. #D97
+        leeside_armor_berm_width_top = 3. #D98
+        leeside_armor_berm_width_sloped = (core_depth - (leeside_armor_berm_depth * 2.)) * leeside_armor_berm_slope_1v   #D99 #=(D25-D95*2)*D97
+        leeside_armor_berm_width_total = leeside_armor_berm_width_toe + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #D100 #=D99+D96+D98
         #D101 length
-        leeside_armor_berm_volume = leeside_armor_berm_depth * leeside_armor_berm_width_total * length #D102
+        leeside_armor_berm_volume = leeside_armor_berm_depth * leeside_armor_berm_width_total * length #D102 #=D95*D100*D101
 
         # leeside_mass
-        leeside_mass_number_of_units = 1 #D88
-        leeside_mass_depth = 1 #D89
-        leeside_mass_width = 1 #D90
+        leeside_mass_number_of_units = 1. #D88
+        leeside_mass_depth = 2. #D89
+        leeside_mass_width = 2. #D90
         #D91 length
-        leeside_mass_volume = leeside_mass_depth * leeside_mass_width * length #D92
+        leeside_mass_volume = leeside_mass_number_of_units * leeside_mass_depth * leeside_mass_width * length #D92 #=D95*D100*D101
 
         # caisson_cap
-        caisson_cap_depth = 1 #D82
-        caisson_cap_width = 1 #D83
+        caisson_cap_depth = 2. #D82
+        caisson_cap_width = 11. #D83
         #D84 length
-        caisson_cap_volume = caisson_cap_depth * caisson_cap_width * length #D85
+        caisson_cap_volume = caisson_cap_depth * caisson_cap_width * length #D85 #=D82*D83*D84
 
         # rectangular_caissons
-        rectangular_caissons_number_of_units = 1 #D72
-        rectangular_caissons_depth = 1 #(height) #D73
-        rectangular_caissons_width = 1 #D74
+        rectangular_caissons_number_of_units = 2. #D72
+        rectangular_caissons_depth = (25. - 2.) + ((2. / 3.) * ((-elev) - 25.)) #(height) #D73 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        if elev > -25:
+            rectangular_caissons_depth = 25. - core_depth #(height) #D73 #=25-D25 #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        rectangular_caissons_width = 5. #D74
         #D75 length
-        rectangular_caissons_wall_thickness = 1 #D76
-        rectangular_caissons_base_slab_thickness = 1 #D77
-        rectangular_caissons_volume_concrete = 1 #D78
-        rectangular_caissons_volume_sand = 1 #D79
+        rectangular_caissons_wall_thickness = 0.5 #D76
+        rectangular_caissons_base_slab_thickness = 1.5 #D77
+        rectangular_caissons_volume_concrete = ((rectangular_caissons_depth * rectangular_caissons_width) - ((rectangular_caissons_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_depth - rectangular_caissons_base_slab_thickness))) * length * rectangular_caissons_number_of_units #D78 #=((D73*D74)-((D74-2*D76)*(D73-D77)))*D75*D72
+        rectangular_caissons_volume_sand = ((rectangular_caissons_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_depth - rectangular_caissons_base_slab_thickness)) * length * rectangular_caissons_number_of_units #D79 #=((D74-2*D76)*(D73-D77))*D75*D72
 
         # sloped_caissons
-        sloped_caissons_number_of_units = 1 #D61
-        sloped_caissons_depth = 1 #(height) #D62
-        sloped_caissons_width = 1 #D63
-        sloped_caissons_slope_1h = 1 #D64
+        sloped_caissons_number_of_units = 2. #D61
+        sloped_caissons_depth = (25. - 2.) + (2. / 3.) * ((-elev) - 25.) #(height) #D62 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        if elev > -25:
+            sloped_caissons_depth = 25. - core_depth #(height) #D62 #=25-D25
+        sloped_caissons_slope_1h = 6. #D64
+        sloped_caissons_width = sloped_caissons_depth / sloped_caissons_slope_1h #D63 #=D62/D64
         #D65 length
-        sloped_caissons_wall_thickness = 1 #D66
-        sloped_caissons_base_slab_thickness = 1 #D67
-        sloped_caissons_volume_concrete = 1 #D68
-        sloped_caissons_volume_sand = sloped_caissons_depth * sloped_caissons_width * length #D69
+        sloped_caissons_wall_thickness = 0.5 #D66
+        sloped_caissons_base_slab_thickness = 1.5 #D67
+        sloped_caissons_volume_concrete = ((sloped_caissons_depth * sloped_caissons_width / 2.) -  (((sloped_caissons_width - 2. * sloped_caissons_wall_thickness) * (sloped_caissons_depth - sloped_caissons_base_slab_thickness)) / 2.)) * length * sloped_caissons_number_of_units #D68 #=((D62*D63/2)-((D63-2*D66)*(D62-D67))/2)*D65*D61
+        sloped_caissons_volume_sand = ((sloped_caissons_width - (2. * sloped_caissons_wall_thickness)) * (sloped_caissons_depth - sloped_caissons_base_slab_thickness) / 2.) * length * sloped_caissons_number_of_units#D69 #=(D63-2*D66)*(D62-D67)/2*D65*D61
 
         # primary_mass
-        primary_mass_number_of_units = 1 #D54
-        primary_mass_depth = 1 #(height) #D55
-        primary_mass_width = 1 #D56
+        primary_mass_number_of_units = 2. #D54
+        primary_mass_depth = 2. #(height) #D55
+        primary_mass_width = 2. #D56
         #D57 length
-        primary_mass_volume = primary_mass_depth * primary_mass_width * length #D58
+        primary_mass_volume = primary_mass_number_of_units * primary_mass_depth * primary_mass_width * length #D58 #=D54*D55*D56*D57
 
         # leveling_course
-        leveling_course_depth = 1 #D48
-        leveling_course_width = 1 #D49
+        leveling_course_depth = 0.5 #D48
+        leveling_course_width = primary_mass_number_of_units * primary_mass_width + caisson_cap_width + leeside_mass_number_of_units * leeside_mass_width #D49 #=D54*D56+D83+D88*D90
         #D50 length
-        leveling_course_volume = leveling_course_depth * leveling_course_width * length #D51
+        leveling_course_volume = leveling_course_depth * leveling_course_width * length #D51 #=D48*D49*D50
 
         # primary_armor_berm
-        primary_armor_berm_depth = 2 #D38
-        primary_armor_berm_width_toe = 3 #D39
-        primary_armor_berm_slope_1v = 2 #D40
-        primary_armor_berm_width_top = 3 #D41
-        primary_armor_berm_width_sloped =  (core_depth - (primary_armor_berm_depth * 2)) #D42  #=(D25-D38*2)*D40
+        primary_armor_berm_depth = 2. #D38
+        primary_armor_berm_width_toe = 3. #D39
+        primary_armor_berm_slope_1v = 2. #D40
+        primary_armor_berm_width_top = 3. #D41
+        primary_armor_berm_width_sloped =  (core_depth - (primary_armor_berm_depth * 2.)) * primary_armor_berm_slope_1v #D42  #=(D25-D38*2)*D40
         primary_armor_berm_width_total = primary_armor_berm_width_sloped + primary_armor_berm_width_toe + primary_armor_berm_width_top #D43  #=D42+D39+D41
         #D44 length
         primary_armor_berm_volume = primary_armor_berm_depth * primary_armor_berm_width_total * length #D45
 
         # scour_blanket_toe_berm
-        scour_blanket_toe_berm_depth = 1 #D31
-        scour_blanket_toe_berm_width_exposed = 5 #D32
+        scour_blanket_toe_berm_depth = 1. #D31
+        scour_blanket_toe_berm_width_exposed = 5. #D32
         scour_blanket_toe_berm_width_total = scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_total #D33  #=D32+D43
         #D34 length
         scour_blanket_toe_berm_volume = scour_blanket_toe_berm_depth * scour_blanket_toe_berm_width_total * length #D35
 
-        # core
-        core_depth = 2 #D25
-        if elev < -25:
-            core_depth = 2 + (((-1 * elev) - 25) / 3)
+        # core part 2
         core_width =  primary_armor_berm_width_sloped + primary_armor_berm_width_top + (primary_mass_number_of_units * primary_mass_width) + (sloped_caissons_width * sloped_caissons_number_of_units) + (rectangular_caissons_number_of_units * rectangular_caissons_width) + (leeside_mass_number_of_units * leeside_mass_depth) + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #D26  #D42+D41+D54*D56+D63*D61+D72*D74+D88*D89+D98+D99
         #D27 length
-        core_volume = core_depth * core_width * length  #D28
+        core_volume = core_depth * core_width * length  #D28 #=D25*D26*D27
 
         # dredge_and_replace
-        dredge_and_replace_depth = 1 #D19
-        dredge_and_replace_width = leeside_armor_berm_width_toe + core_width + scour_blanket_toe_berm_width + primary_armor_berm_width #D20
+        dredge_and_replace_depth = 1. #D19
+        dredge_and_replace_width = leeside_armor_berm_width_toe + core_width + scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_toe #D20 #=D26+D32+D39+D96
         #D21 length
-        dredge_and_replace_volume = dredge_and_replace_depth * dredge_and_replace_width * length #D22
+        dredge_and_replace_volume = dredge_and_replace_depth * dredge_and_replace_width * length #D22 #=D19*D20*D21
 
 # D14   elev
 
@@ -441,4 +447,283 @@ def multiDikeSingleBermCombo(length, elev, params):
                'armorVol' : armorVolume,
                'cost' : dikeVolume + coreVolume + toeVolume + foundVolume + armorVolume
             }
+
+
+# Nathan Chase's SUPERSLR Design
+# Implemented by Keith Mosher
+def multiDikeSingleBermComboTest(length, elev, max_depth):
+
+    if elev > 0 :
+        leeside_armor_berm_depth = 1
+        #print "berm"
+    elif elev <=0 and elev > -10 :
+        leeside_armor_berm_depth = 1
+        #print "rubble mound breakwater"
+    elif elev <= -10 and elev >= max_depth :
+        #print "deep breakwater"
+
+
+
+
+        # core part 1
+        core_depth = 2. #D25
+        if elev < -25.:
+            core_depth = 2. + (((-elev) - 25.) / 3.) #D25 #=IF(D14<25,2,2+(D14-25)/3)
+
+        # leeside_armor_berm
+        leeside_armor_berm_depth = 2. #D95
+        leeside_armor_berm_width_toe = 3. #D96
+        leeside_armor_berm_slope_1v = 2. #D97
+        leeside_armor_berm_width_top = 3. #D98
+        leeside_armor_berm_width_sloped = (core_depth - (leeside_armor_berm_depth * 2.)) * leeside_armor_berm_slope_1v   #D99 #=(D25-D95*2)*D97
+        leeside_armor_berm_width_total = leeside_armor_berm_width_toe + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #D100 #=D99+D96+D98
+        #D101 length
+        leeside_armor_berm_volume = leeside_armor_berm_depth * leeside_armor_berm_width_total * length #D102 #=D95*D100*D101
+
+        # leeside_mass
+        leeside_mass_number_of_units = 1. #D88
+        leeside_mass_depth = 2. #D89
+        leeside_mass_width = 2. #D90
+        #D91 length
+        leeside_mass_volume = leeside_mass_number_of_units * leeside_mass_depth * leeside_mass_width * length #D92 #=D95*D100*D101
+
+        # caisson_cap
+        caisson_cap_depth = 2. #D82
+        caisson_cap_width = 11. #D83
+        #D84 length
+        caisson_cap_volume = caisson_cap_depth * caisson_cap_width * length #D85 #=D82*D83*D84
+
+        # rectangular_caissons
+        rectangular_caissons_number_of_units = 2. #D72
+        rectangular_caissons_depth = (25. - 2.) + ((2. / 3.) * ((-elev) - 25.)) #(height) #D73 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        if elev > -25:
+            rectangular_caissons_depth = 25. - core_depth #(height) #D73 #=25-D25 #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        rectangular_caissons_width = 5. #D74
+        #D75 length
+        rectangular_caissons_wall_thickness = 0.5 #D76
+        rectangular_caissons_base_slab_thickness = 1.5 #D77
+        rectangular_caissons_volume_concrete = ((rectangular_caissons_depth * rectangular_caissons_width) - ((rectangular_caissons_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_depth - rectangular_caissons_base_slab_thickness))) * length * rectangular_caissons_number_of_units #D78 #=((D73*D74)-((D74-2*D76)*(D73-D77)))*D75*D72
+        rectangular_caissons_volume_sand = ((rectangular_caissons_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_depth - rectangular_caissons_base_slab_thickness)) * length * rectangular_caissons_number_of_units #D79 #=((D74-2*D76)*(D73-D77))*D75*D72
+
+        # sloped_caissons
+        sloped_caissons_number_of_units = 2. #D61
+        sloped_caissons_depth = (25. - 2.) + (2. / 3.) * ((-elev) - 25.) #(height) #D62 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        if elev > -25:
+            sloped_caissons_depth = 25. - core_depth #(height) #D62 #=25-D25
+        sloped_caissons_slope_1h = 6. #D64
+        sloped_caissons_width = sloped_caissons_depth / sloped_caissons_slope_1h #D63 #=D62/D64
+        #D65 length
+        sloped_caissons_wall_thickness = 0.5 #D66
+        sloped_caissons_base_slab_thickness = 1.5 #D67
+        sloped_caissons_volume_concrete = ((sloped_caissons_depth * sloped_caissons_width / 2.) -  (((sloped_caissons_width - 2. * sloped_caissons_wall_thickness) * (sloped_caissons_depth - sloped_caissons_base_slab_thickness)) / 2.)) * length * sloped_caissons_number_of_units #D68 #=((D62*D63/2)-((D63-2*D66)*(D62-D67))/2)*D65*D61
+        sloped_caissons_volume_sand = ((sloped_caissons_width - (2. * sloped_caissons_wall_thickness)) * (sloped_caissons_depth - sloped_caissons_base_slab_thickness) / 2.) * length * sloped_caissons_number_of_units#D69 #=(D63-2*D66)*(D62-D67)/2*D65*D61
+
+        # primary_mass
+        primary_mass_number_of_units = 2. #D54
+        primary_mass_depth = 2. #(height) #D55
+        primary_mass_width = 2. #D56
+        #D57 length
+        primary_mass_volume = primary_mass_number_of_units * primary_mass_depth * primary_mass_width * length #D58 #=D54*D55*D56*D57
+
+        # leveling_course
+        leveling_course_depth = 0.5 #D48
+        leveling_course_width = primary_mass_number_of_units * primary_mass_width + caisson_cap_width + leeside_mass_number_of_units * leeside_mass_width #D49 #=D54*D56+D83+D88*D90
+        #D50 length
+        leveling_course_volume = leveling_course_depth * leveling_course_width * length #D51 #=D48*D49*D50
+
+        # primary_armor_berm
+        primary_armor_berm_depth = 2. #D38
+        primary_armor_berm_width_toe = 3. #D39
+        primary_armor_berm_slope_1v = 2. #D40
+        primary_armor_berm_width_top = 3. #D41
+        primary_armor_berm_width_sloped =  (core_depth - (primary_armor_berm_depth * 2.)) * primary_armor_berm_slope_1v #D42  #=(D25-D38*2)*D40
+        primary_armor_berm_width_total = primary_armor_berm_width_sloped + primary_armor_berm_width_toe + primary_armor_berm_width_top #D43  #=D42+D39+D41
+        #D44 length
+        primary_armor_berm_volume = primary_armor_berm_depth * primary_armor_berm_width_total * length #D45
+
+        # scour_blanket_toe_berm
+        scour_blanket_toe_berm_depth = 1. #D31
+        scour_blanket_toe_berm_width_exposed = 5. #D32
+        scour_blanket_toe_berm_width_total = scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_total #D33  #=D32+D43
+        #D34 length
+        scour_blanket_toe_berm_volume = scour_blanket_toe_berm_depth * scour_blanket_toe_berm_width_total * length #D35
+
+        # core part 2
+        core_width =  primary_armor_berm_width_sloped + primary_armor_berm_width_top + (primary_mass_number_of_units * primary_mass_width) + (sloped_caissons_width * sloped_caissons_number_of_units) + (rectangular_caissons_number_of_units * rectangular_caissons_width) + (leeside_mass_number_of_units * leeside_mass_depth) + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #D26  #D42+D41+D54*D56+D63*D61+D72*D74+D88*D89+D98+D99
+        #D27 length
+        core_volume = core_depth * core_width * length  #D28 #=D25*D26*D27
+
+        # dredge_and_replace
+        dredge_and_replace_depth = 1. #D19
+        dredge_and_replace_width = leeside_armor_berm_width_toe + core_width + scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_toe #D20 #=D26+D32+D39+D96
+        #D21 length
+        dredge_and_replace_volume = dredge_and_replace_depth * dredge_and_replace_width * length #D22 #=D19*D20*D21
+
+# D14   elev
+
+
+
+
+
+# D14
+        print elev
+        print dredge_and_replace_depth
+        print dredge_and_replace_width
+        print length
+        print dredge_and_replace_volume #D22 #=D19*D20*D21
+        print
+        print
+
+        print core_depth #D25
+        print core_width  #D26  #D42+D41+D54*D56+D63*D61+D72*D74+D88*D89+D98+D99
+        #D27 length
+        print length
+        print core_volume  #D28 #=D25*D26*D27
+
+        print
+        print
+        # scour_blanket_toe_berm
+        print scour_blanket_toe_berm_depth #D31
+        print scour_blanket_toe_berm_width_exposed #D32
+        print scour_blanket_toe_berm_width_total #D33  #=D32+D43
+        #D34 length
+        print length
+        print scour_blanket_toe_berm_volume  #D35
+
+        print
+        print
+        # primary_armor_berm
+        print primary_armor_berm_depth #D38
+        print primary_armor_berm_width_toe  #D39
+        print primary_armor_berm_slope_1v #D40
+        print primary_armor_berm_width_top  #D41
+        print primary_armor_berm_width_sloped  #D42  #=(D25-D38*2)*D40
+        print primary_armor_berm_width_total  #D43  #=D42+D39+D41
+        #D44 length
+        print length
+        print primary_armor_berm_volume  #D45
+
+        print
+        print
+        # leveling_course
+        print leveling_course_depth  #D48
+        print leveling_course_width #D49 #=D54*D56+D83+D88*D90
+        #D50 length
+        print length
+        print leveling_course_volume  #D51 #=D48*D49*D50
+        print
+        print
+        # primary_mass
+        print primary_mass_number_of_units #D54
+        print primary_mass_depth #(height) #D55
+        print primary_mass_width #D56
+        #D57 length
+        print length
+        print primary_mass_volume  #D58 #=D54*D55*D56*D57
+
+        print
+        print
+        # sloped_caissons
+        print sloped_caissons_number_of_units  #D61
+        print sloped_caissons_depth  #(height) #D62 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        print sloped_caissons_width #D63 #=D62/D64
+        print sloped_caissons_slope_1h  #D64
+        #D65 length
+        print length
+        print sloped_caissons_wall_thickness #D66
+        print sloped_caissons_base_slab_thickness  #D67
+        print sloped_caissons_volume_concrete  #D68 #=((D62*D63/2)-((D63-2*D66)*(D62-D67))/2)*D65*D61
+        print sloped_caissons_volume_sand #D69 #=(D63-2*D66)*(D62-D67)/2*D65*D61
+
+        print
+        print
+        # rectangular_caissons
+        print rectangular_caissons_number_of_units  #D72
+        print rectangular_caissons_depth #(height) #D73 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        print rectangular_caissons_width #D74
+        #D75 length
+        print length
+        print rectangular_caissons_wall_thickness  #D76
+        print rectangular_caissons_base_slab_thickness #D77
+        print rectangular_caissons_volume_concrete #D78 #=((D73*D74)-((D74-2*D76)*(D73-D77)))*D75*D72
+        print rectangular_caissons_volume_sand  #D79 #=((D74-2*D76)*(D73-D77))*D75*D72
+
+        print
+        print
+        # caisson_cap
+        print caisson_cap_depth  #D82
+        print caisson_cap_width  #D83
+        #D84 length
+        print length
+        print caisson_cap_volume  #D85 #=D82*D83*D84
+
+        print
+        print
+        # leeside_mass
+        print leeside_mass_number_of_units #D88
+        print leeside_mass_depth #D89
+        print leeside_mass_width #D90
+        #D91 length
+        print length
+        print leeside_mass_volume #D92 #=D95*D100*D101
+
+
+        print
+        print
+        # leeside_armor_berm
+        print leeside_armor_berm_depth #D95
+        print leeside_armor_berm_width_toe  #D96
+        print leeside_armor_berm_slope_1v #D97
+        print leeside_armor_berm_width_top #D98
+        print leeside_armor_berm_width_sloped #D99 #=(D25-D95*2)*D97
+        print leeside_armor_berm_width_total #D100 #=D99+D96+D98
+        #D101 length
+        print length
+        print leeside_armor_berm_volume #D102 #=D95*D100*D101
+
+
+
+
+
+
+
+        print
+        print
+        print
+        print
+        print elev
+        print dredge_and_replace_width
+        print dredge_and_replace_volume #D22 #=D19*D20*D21
+        print core_depth #D25
+        print core_width  #D26  #D42+D41+D54*D56+D63*D61+D72*D74+D88*D89+D98+D99=
+        print core_volume  #D28 #=D25*D26*D27
+        print scour_blanket_toe_berm_width_total #D33  #=D32+D43
+        print
+        print scour_blanket_toe_berm_volume  #D35
+        print primary_armor_berm_width_total  #D43  #=D42+D39+D41
+        print primary_armor_berm_volume  #D45
+        print leveling_course_width #D49 #=D54*D56+D83+D88*D90
+        print leveling_course_volume  #D51 #=D48*D49*D50
+        print primary_mass_volume  #D58 #=D54*D55*D56*D57
+        print sloped_caissons_depth  #(height) #D62 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        print sloped_caissons_width #D63 #=D62/D64
+        print sloped_caissons_volume_concrete  #D68 #=((D62*D63/2)-((D63-2*D66)*(D62-D67))/2)*D65*D61
+        print
+        print sloped_caissons_volume_sand #D69 #=(D63-2*D66)*(D62-D67)/2*D65*D61
+        print rectangular_caissons_depth #(height) #D73 #=25-2+2/3*(D14-25) #=IF(D14<25,25-D25,25-2+2/3*(D14-25))
+        print rectangular_caissons_volume_concrete #D78 #=((D73*D74)-((D74-2*D76)*(D73-D77)))*D75*D72
+        print rectangular_caissons_volume_sand  #D79 #=((D74-2*D76)*(D73-D77))*D75*D72
+        print caisson_cap_volume  #D85 #=D82*D83*D84=
+        print leeside_mass_volume #D92 #=D95*D100*D101
+        print leeside_armor_berm_width_sloped #D99 #=(D25-D95*2)*D97
+        print leeside_armor_berm_width_total #D100 #=D99+D96+D98
+        print leeside_armor_berm_volume #D102 #=D95*D100*D101
+
+
+
+    else :
+        print "error, dike model only operates to max depth %s" % (max_depth)
+
+
+
 

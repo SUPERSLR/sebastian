@@ -370,8 +370,8 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     try:
         prev = False
-        print "sp"
-        print sp
+#        print "sp"
+#        print sp
         #print graph
         for v in sp:
 #            print "checking path"

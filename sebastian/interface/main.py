@@ -394,6 +394,7 @@ if __name__ == "__main__":
             "AvoidPoly" : GeoUtils.data.InterfaceDicts.PortPoly,
             "StartEndPoly" : GeoUtils.data.InterfaceDicts.PortPoly,
             "ModelPath" : GeoUtils.data.InterfaceDicts.ModelPath,
+            "BermPath" : GeoUtils.data.InterfaceDicts.BermPath,
             "Country" : GeoUtils.data.InterfaceDicts.Country,
             "UserNote" : GeoUtils.data.InterfaceDicts.UserNote,
             "Info" : GeoUtils.data.InterfaceDicts.Main,

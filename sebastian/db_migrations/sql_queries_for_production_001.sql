@@ -1469,3 +1469,39 @@ insert into uws_maps.elev_data_shard06_noaa_aster_30m (latitude,longitude,elevat
 insert into elev_data_shard02_noaa_aster_30m_temp (latitude, longitude, elevation, source) select latitude, longitude, elevation, source from elev_data_shard02_noaa_aster_30m where id in (select max(id) from elev_data_shard02_noaa_aster_30m group by latitude, longitude having count(latitude) > 1);
 */
 
+
+/* add temp google data table for noaa_aster_001666sec*/
+use uws_maps;
+
+DROP TABLE IF EXISTS `elev_data_all_google_web_service_30sec`;
+CREATE TABLE `elev_data_all_google_web_service_30sec` (
+  `latitude` double NOT NULL,
+  `longitude` double NOT NULL,
+  `elevation` double NOT NULL,
+  `source` tinytext NOT NULL,
+  KEY `latitude` (`latitude`),
+  KEY `longitude` (`longitude`),
+  KEY `source` (`source`(4))
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/* add temp google data table for noaa_aster_0008333sec*/
+use uws_maps;
+
+DROP TABLE IF EXISTS `elev_data_all_google_web_service_point3sec`;
+CREATE TABLE `elev_data_all_google_web_service_point3sec` (
+  `latitude` double NOT NULL,
+  `longitude` double NOT NULL,
+  `elevation` double NOT NULL,
+  `source` tinytext NOT NULL,
+  KEY `latitude` (`latitude`),
+  KEY `longitude` (`longitude`),
+  KEY `source` (`source`(4))
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+insert into uws_maps.elev_data_shard02_google_web_service_30sec (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_google_web_service_30sec where ((longitude>=-121 and longitude<=-59) or (false)) and source = 'google_web_service_30sec');
+
+
+insert into uws_maps.elev_data_shard02_google_web_service_point3sec (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_google_web_service_point3sec where ((longitude>=-121 and longitude<=-59) or (false)) and source = 'google_web_service_point3sec');
+
+

@@ -16,13 +16,13 @@ from database import RDB
 def getCountries():
     DBhandle = RDB()
     DBhandle.connect('uws_ge')
-    
+
     countries, count = DBhandle.query('SELECT name FROM countries')
-    
+
     out = {}
     for elem in countries:
         out[elem['name']] = elem['name']
-    
+
     DBhandle.close()
     return out
 
@@ -40,7 +40,7 @@ class FormDicts:
                     'Longitude' : ['text','Longitude',[''],'longitude','In decimal degrees (0.000000)'],
                     'Latitude' : ['text','Latitude',[''],'latitude','In decimal degrees (0.000000)'],
                     'Country' : ['select','Country', getCountries(),'country',''],
-		    # I'm taking these out because region is determined by country - Ben P.
+                    # I'm taking these out because region is determined by country - Ben P.
                     #'Region' : ['text','Region',[''],'region',''],
                     #'SubRegion' : ['text','Sub-region',[''],'sub_region','More local region'],
                     'WaterBody' : ['text','Body of Water',[''],'water_body','Nearest major body of water'],
@@ -105,10 +105,10 @@ class FormDicts:
                 },
             'zhidden' : {
                     'GE_KEY' : ['hidden','',[''],'GE_KEY',''],
-                    'itemType' : ['hidden','',[''],'PortChar',''] 
+                    'itemType' : ['hidden','',[''],'PortChar','']
                 }
         }
-    
+
     PortPoly = {
             'A. Port Polygon Details' : {
                     'ID' : ['text','Polygon ID',['readonly'],'ID','You are not permitted to edit this item.'],
@@ -124,17 +124,17 @@ class FormDicts:
                 },
             'zhidden' : {
                     'GE_KEY' : ['hidden','',[''],'GE_KEY',''],
-                    'itemType' : ['hidden','',[''],'PortPoly',''] 
+                    'itemType' : ['hidden','',[''],'PortPoly','']
                 }
         }
-    
+
     PortProtectorModel = {
             'A. Port Protector Parameters' : {
                     'PortID' : ['text','Port ID',['readonly'],'ID','You are not permitted to edit this item.'],
                     'Equation' : ['select','Equation',
-			    			{constants.Equations.BMASW : 'Ben and Merel\'s Attempt to Save the World',
-						 	 constants.Equations.SMCDD : 'SUPERSLR Minimum-Criteria Dike Design'},
-			    		'equation','Select the equation you wish to use for this model run.'],
+                                                {constants.Equations.BMASW : 'Ben and Merel\'s Attempt to Save the World',
+                                                         constants.Equations.SMCDD : 'SUPERSLR Minimum-Criteria Dike Design'},
+                                        'equation','Select the equation you wish to use for this model run.'],
                     'GridHeight' : ['text','Grid Height',[''],'height','degrees<br/>\nHeight of the elevation grid over which the model will run.'],
                     'GridWidth' : ['text','Grid Width',[''],'width','degrees<br/>\nWidth of the elevation grid over which the model will run.'],
                     'ElevationData' : ['select','Elevation Grid',{'default_30sec' : 'Default - UCSD - 30 arc-second' , 'usgs_3sec' : 'USGS - 3 arc-second' , 'google_web_service' : 'Google Elevation Data API' },'elev_data','Select the elevation grid you wish to use for this model run.']
@@ -144,10 +144,10 @@ class FormDicts:
                 },
             'zhidden' : {
                     'GE_KEY' : ['hidden','',[''],'GE_KEY',''],
-                    'itemType' : ['hidden','',[''],'PortProtectorModel',''] 
+                    'itemType' : ['hidden','',[''],'PortProtectorModel','']
                 }
         }
-    
+
     ModelPath = {
             'A. Model Result Details' : {
                     'AvgElev' : ['text','Average Elevation',['readonly'],'avg_elev','meters<br/>\nYou are not permitted to edit this item.'],
@@ -177,14 +177,43 @@ class FormDicts:
                 }
         }
 
+    BermPath = {
+            'A. Berm Result Details' : {
+                    'AvgElev' : ['text','Average Elevation',['readonly'],'avg_elev','meters<br/>\nYou are not permitted to edit this item.'],
+                    'PathLength' : ['text','Path Length',['readonly'],'path_length','meters<br/>\nYou are not permitted to edit this item.'],
+                    'PathVolume' : ['text','Path Volume',['readonly'],'path_volume','cubic meters<br/>\nYou are not permitted to edit this item.'],
+                    'DikeVolume' : ['text','Dike Volume',['readonly'],'dike_volume','cubic meters<br/>\nYou are not permitted to edit this item.'],
+                    'CoreVolume' : ['text','Core Volume',['readonly'],'core_volume','cubic meters<br/>\nYou are not permitted to edit this item.'],
+                    'ToeVolume' : ['text','Toe Volume',['readonly'],'toe_volume','cubic meters<br/>\nYou are not permitted to edit this item.'],
+                    'FoundationVolume' : ['text','Foundation Volume',['readonly'],'foundation_volume','cubic meters<br/>\nYou are not permitted to edit this item.'],
+                    'ArmorVolume' : ['text','Armor Volume',['readonly'],'armor_volume','cubic meters<br/>\nYou are not permitted to edit this item.']
+                },
+            'B. Berm Run Details' : {
+                    'ID' : ['text','Path ID',['readonly'],'ID','You are not permitted to edit this item.'],
+                    'PortID' : ['text','Port ID',['readonly'],'portID','You are not permitted to edit this item.'],
+                    'RequestedBy' : ['text','Requested by',['readonly'],'attribution','You are not permitted to edit this item.'],
+                    'Timestamp' : ['text','Time of model run',['readonly'],'timestamp','Pacific Time<br/>\nYou are not permitted to edit this item.'],
+                    'Equation' : ['text','Equation Used',['readonly'],'equation','You are not permitted to edit this item.'],
+                    'ElevData' : ['text','Elevation Data',['readonly'],'elev_data','You are not permitted to edit this item.'],
+                    'ComputeCenter' : ['text','Compute Center',['readonly'],'computeCenter','You are not permitted to edit this item.']
+                },
+            'zbuttons' : {
+                    'Submit' : ['submit','Run Berm',[''],'','']
+                },
+            'zhidden' : {
+                    'GE_KEY' : ['hidden','',[''],'GE_KEY',''],
+                    'itemType' : ['hidden','',[''],'BermPath','']
+                }
+        }
+
 
     Country = {
             'A. Country' : {
-		    'Name' : ['text', 'Country Name', ['readonly'], 'name', 'You are not permitted to edit this item.'],
+                    'Name' : ['text', 'Country Name', ['readonly'], 'name', 'You are not permitted to edit this item.'],
                     'Region' : ['text', 'Region Name', ['readonly'], 'sub_region', 'You are not permitted to edit this item.'],
                     'Parent Region' : ['text', 'Parent Region', ['readonly'], 'region', 'Your are not permitted to edit this item.'],
-		    'ID' : ['text', 'ID', ['readonly'], 'ID', 'You are not permitted to edit this item.'],
-		    'Population Density' : ['text', 'Population Density', [''], 'pop_density', 'People per km<sup>2</sup>']
+                    'ID' : ['text', 'ID', ['readonly'], 'ID', 'You are not permitted to edit this item.'],
+                    'Population Density' : ['text', 'Population Density', [''], 'pop_density', 'People per km<sup>2</sup>']
                 },
             'B. Resources' : {
                     'Concrete Production' : ['text', 'Cement Production', [''], 'cement', 'In thousand metric tons per year'],
@@ -203,7 +232,7 @@ class FormDicts:
                 }
     }
 
-    
+
     UserNote = {
             'A. User Note Details' : {
                     'ID' : ['text','ID',['readonly'],'ID','You are not permitted to edit this item.'],
@@ -213,7 +242,7 @@ class FormDicts:
                     'Status' : ['select','Note Type',{'Caution' : 'Caution' , 'Sticky' : 'Sticky' , 'Info' : 'Info'},'status','Specifies icon style to display'],
                     'Details' : ['textarea','Note Contents',{'cols' : 50,'rows' : 6},'details','Details of note'],
                     'newKML' : ['textarea','Paste new KML point here',{'cols' : 50,'rows' : 6},'feature_geometry','Create a point using Google Earth\'s tools and copy, then paste, here. KML will be parsed automatically for coordinates.']
-                    
+
                 },
             'zbuttons' : {
                     'Submit' : ['submit','Submit',[''],'','']
@@ -223,7 +252,7 @@ class FormDicts:
                     'itemType' : ['hidden','',[''],'UserNote','']
                 }
         }
-    
+
     DataRequest = {
             'A. Data Request Details' : {
                     'ID' : ['text','ID',[],'ID','You are not permitted to edit this item.'],
@@ -237,7 +266,7 @@ class FormDicts:
                     'itemType' : ['hidden','',[''],'UserNote','']
                 }
         }
-    
+
     DeleteForm = {
             'A. Item Details' : {
                     'ID' : ['text','ID',['readonly'],'ID','You are not permitted to edit this item.'],
@@ -248,7 +277,7 @@ class FormDicts:
                 },
             'zhidden' : {
                     'GE_KEY' : ['hidden','',[''],'GE_KEY',''],
-                    'itemType' : ['hidden','',[''],'itemType',''] 
+                    'itemType' : ['hidden','',[''],'itemType','']
                 }
         }
 
@@ -264,13 +293,13 @@ class InterfaceDicts:
             'Run Port Protector Model' : ['info','/sebastian/interface/model.py',['id','type','GE_KEY','edit'],{'' : ''}],
             'Add a Note' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'UserNote'}]
         }
-    
+
     PortPoly = {
             'Edit Port Polygon' : ['lens','/sebastian/interface/edit.py',['id','type','GE_KEY','edit'],{'' : ''}],
             'Delete Port Polygon' : ['delete','/sebastian/interface/delete.py',['id','type','GE_KEY','edit'],{'' : ''}],
             'Add a Note' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'UserNote'}]
         }
-    
+
     ModelPath = {
             'View Model Data' : ['lens','/sebastian/interface/edit.py',['id','type','GE_KEY'],{'edit' : '0'}],
             'Add Port Polygon' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'PortPoly'}],
@@ -278,14 +307,14 @@ class InterfaceDicts:
         }
 
     Country = {
-		'View/Edit Country Info' : ['lens', '/sebastian/interface/edit.py', ['id', 'type', 'GE_KEY', 'edit'], {'' : ''}]
-	}
-    
+                'View/Edit Country Info' : ['lens', '/sebastian/interface/edit.py', ['id', 'type', 'GE_KEY', 'edit'], {'' : ''}]
+        }
+
     UserNote = {
             'Edit Note' : ['lens','/sebastian/interface/edit.py',['id','type','GE_KEY','edit'],{'' : ''}],
             'Add a Note' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'UserNote'}]
         }
-    
+
     Main = {
             'Let\'s see some information' : ['lens','/sebastian/interface/info/intro.py',[''],{}],
             'Add New Port' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'PortChar'}],
