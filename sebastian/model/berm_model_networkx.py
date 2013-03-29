@@ -3,12 +3,21 @@
 # sebastian/model/berm_model.py
 # Optimization model for Port Protector berm design
 
-# Import Useful Modules
+# Import required modules
 import sys, os
+
+# Switch to custom-compiled Python interpreter
+INTERP = os.path.join(os.environ['HOME'], 'bin', 'python')
+if sys.executable != INTERP:
+    os.execl(INTERP, INTERP, *sys.argv)
+
+# Import Useful Modules
 sys.path.append(os.path.abspath('../'))
 import GeoUtils
 BASE_URL = GeoUtils.constants.BASE_URL
 
+# Import graph handling tools
+import networkx as nx
 
 # Connect to main database
 DBhandle = GeoUtils.RDB()
@@ -168,9 +177,10 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     distDiffInit = initPt.distanceFrom(GeoUtils.Features.Point(x=initPt.lon+dr,y=initPt.lat+dr))
     #distDiffInit = initPt.distanceFrom(GeoUtils.Features.Point(x=initPt.lon+0.003,y=initPt.lat+0.003))
 
-    print "makeNetwork, pre-grid, current time: %s" % (startMakeNetworkTime -time.time())
-    # Dictionary for grid vertices
-    grid = {}
+    print "makeNetworkx, pre-grid, current time: %s" % (startMakeNetworkTime -time.time())
+
+    # Graph for processing model
+    graph = nx.Graph()
 
     for r in elevdata:
         # Create new Point based on database record
@@ -185,14 +195,13 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         GridCoord = (IntCoordX,IntCoordY)
 
         # Store raw metric coordinates and elevation at integer coordinate on grid
-        grid[GridCoord] = {
-                "latlon" : (curPt.lon,curPt.lat),
-                "metric" : (distCurInit["horiz"],distCurInit["vertical"]),
-                "elev" : curPt.elev
-            }
+        if not graph.has_node(GridCoord):
+            graph.add_node(GridCoord,latlon=(curPt.lon,curPt.lat),
+                                metric=(distCurInit["horiz"],distCurInit["vertical"]),
+                                elev=curPt.elev)
 
-    print "make network finished grid, number of points: %s" % (len(grid))
-    print "makeNetwork, post-grid, pre-find-delete-avoid, current time: %s" % (startMakeNetworkTime-time.time())
+    print "make networkx finished grid, number of points: %s" % (len(graph))
+    print "makeNetworkx, post-grid, pre-find-delete-avoid, current time: %s" % (startMakeNetworkTime-time.time())
     #print grid
     # List of keys to delete because of avoid polygons or parameter exclusion
     del_keys = []
@@ -203,25 +212,30 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         for polygon in polydata:
             poly = GeoUtils.Features.Polygon()
             poly.fromMySQL_polygon(polygon['AsText(feature_geometry)'])
-            del_keys.extend([ v for v in grid if poly.containsPoint(GeoUtils.Features.Point(x=grid[v]["latlon"][0],y=grid[v]["latlon"][1])) ])
+            del_keys.extend([ v for v in graph.nodes(data=False) if poly.containsPoint(GeoUtils.Features.Point(x=graph.node[v]["latlon"][0],y=graph.node[v]["latlon"][1])) ])
 
     print "makeNetwork, post-find-delete-avoid, pre-find-delete-depth/elev,current time: %s" % (startMakeNetworkTime-time.time())
-    # Add vertices excluded by parameters to delete list
-    #   Current disqualifying parameters: max_elevation, min_elevation
-    del_keys.extend([ v for v in grid if grid[v]["elev"] > float(params['max_elevation_berm']) or grid[v]["elev"] < float(params['min_elevation_berm']) ])
-    #del_keys.extend([ v for v in grid if grid[v]["elev"] < float(params['min_elevation']) ])
 
-    print "makeNetwork, post-find-delete-depth/elev, pre-actual-delete, current time: %s" % (startMakeNetworkTime-time.time())
     print "min elevation: %s" % (params['min_elevation'])
     print "max elevation: %s" % (params['max_elevation'])
     print "min elevation_berm: %s" % (params['min_elevation_berm'])
     print "max elevation_berm: %s" % (params['max_elevation_berm'])
+    # Add vertices excluded by parameters to delete list
+    #   Current disqualifying parameters: max_elevation_berm, min_elevation_berm
+    del_keys.extend([ v for v in grid if grid[v]["elev"] > float(params['max_elevation_berm']) or grid[v]["elev"] < float(params['min_elevation_berm']) ])
+
+    print "makeNetwork, post-find-delete-depth/elev, pre-actual-delete, current time: %s" % (startMakeNetworkTime-time.time())
+
     # Delete listed keys from available vertices
     for v in del_keys:
-        if v in grid:
-            del grid[v]
+        if v in graph:
+#            del graph[v]["latlon"]
+#            del graph[v]["metric"]
+#            del graph[v]["elev"]
+            graph.remove_node(v)
 
     print "makeNetwork, post--actual-delete, current time: %s" % (startMakeNetworkTime-time.time())
+
     # Process start/end points
     # If two start end polygons in immediate vicinity, use these regions for starting and ending points
     if serowcount == 2:
@@ -232,8 +246,8 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         endpoly.fromMySQL_polygon(sedata[1]['AsText(feature_geometry)'])
 
         # Check vertices for appropriate inclusion in start and end points
-        spts = [ v for v in grid if startpoly.containsPoint(GeoUtils.Features.Point(x=grid[v]["latlon"][0],y=grid[v]["latlon"][1])) ]
-        epts = [ v for v in grid if endpoly.containsPoint(GeoUtils.Features.Point(x=grid[v]["latlon"][0],y=grid[v]["latlon"][1])) ]
+        spts = [ v for v in graph.nodes(data=False) if startpoly.containsPoint(GeoUtils.Features.Point(x=graph.node[v]["latlon"][0],y=graph.node[v]["latlon"][1])) ]
+        epts = [ v for v in graph.nodes(data=False) if endpoly.containsPoint(GeoUtils.Features.Point(x=graph.node[v]["latlon"][0],y=graph.node[v]["latlon"][1])) ]
 
 
         print "spts count: %s, pre-selecting 1" % (len(spts))
@@ -260,6 +274,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         if best_ept_v <> 0 :
             print "best ept: %s %s" % (best_ept_v,grid[best_ept_v]["elev"])
             epts = [best_ept_v]
+
     else:
         # Return error message
         errtxt = "There was an error while retrieving the starting and ending polygons.<br/><br/>\n"
@@ -275,17 +290,15 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         return errtxt,True
 
 
-    print "final number of grid points, after deletions: %s" % (len(grid))
+    print "final number of grid points, after deletions: %s" % (len(graph))
     print "makeNetwork, pre-graph, current time: %s" % (startMakeNetworkTime-time.time())
-    # Dictionary to store graph
-    graph = {}
+
 
     # Create network based on vertices
-    for vertex in grid:
-        # Create directory for edges
-        graph[vertex] = {}
+    for v in graph:
         # Get grid x and y for current vertex
-        x,y = vertex
+        x,y = v
+
         # Neighbors of current vertex
         neighbors = [
                 (x,y + 1),
@@ -299,42 +312,28 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
             ]
 
         # For each neighbor, check for key and compute cost based on distance and average elevation
-        for neighbr in neighbors:
-            if grid.has_key(neighbr):
+        for k in neighbors:
+            if graph.has_node(k):
                 # Calculate distance between current vertex and neighbor
-                vertexPt = GeoUtils.Features.Point(x=grid[vertex]["latlon"][0],y=grid[vertex]["latlon"][1])
-                nighbrPt = GeoUtils.Features.Point(x=grid[neighbr]["latlon"][0],y=grid[neighbr]["latlon"][1])
-                dist = vertexPt.distanceFrom(nighbrPt)
+                ptV = GeoUtils.Features.Point(x=graph.node[v]["latlon"][0],y=graph.node[v]["latlon"][1])
+                ptK = GeoUtils.Features.Point(x=graph.node[k]["latlon"][0],y=graph.node[k]["latlon"][1])
+                dist = ptV.distanceFrom(ptK)
 
                 # Calculate average elevation
-                avg_elev = (float(grid[vertex]["elev"]) + float(grid[neighbr]["elev"])) / 2
+                avg_elev = (float(graph.node[v]["elev"]) + float(graph.node[k]["elev"])) / 2
 
                 # Get cost for edge
-                graph[vertex][neighbr] = eqns.get(eq)(dist["total"],avg_elev,params)
+                weight,vars = eqns.get(eq)(dist["total"],avg_elev,params)
 
-    # List of edges to delete
-    #del_edges = []
+                # Add edge to graph is not
+                if not graph.has_edge(v,k):
+                    graph.add_edge(v,k,weight=weight,vars=vars)
 
-    # For each avoid polygon, if edges intersects with polygon, add to list of edges to be deleted
-    #for polygon in polydata:
-    #    poly = GeoMySQL.poly2coords(polygon['AsText(feature_geometry)'])["outer"]
-    #    for v in graph:
-    #        for e in graph[v]:
-    #            edge = (grid[v]["latlon"],grid[e]["latlon"])
-    #            if edgeintersectpoly(edge,poly):
-    #                del_edges.append((v,e))
 
-    # Delete listed edges from graph
-    #for e in del_edges:
-    #    if e[0] in graph:
-    #        if e[1] in graph[e[0]]:
-    #            pass
-    #            #del graph[e[0]][e[1]]
-    #            #print e
 
     print "makeNetwork,complete, current time: %s" % (startMakeNetworkTime-time.time())
     # Return graph and no error
-    return (grid,graph,spts,epts,boundingPoly),False
+    return (graph,spts,epts,boundingPoly),False
 
 
 # Run optimization
@@ -355,46 +354,40 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
         @param elevdata - elevation data to use for grid as constant in GeoUtils.constants.ElevSrc (default: 30-second SRTM30Plus)
 
     '''
-    #print "<br/>Debug - optimize_01<br/>"
+
     # Get grid
     response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata)
-    #print "<br/>Debug - optimize_02_1<br/>"
-    ###print response
-    ###print "<br/>Debug - optimize_02_2<br/>"
+
     # If there was an error, return error and message
     if error == True:
         errtxt = response
         # Function exits
         return errtxt,True
     # Unpack response
-    #print "<br/>Debug - optimize_02_2<br/>"
-    (grid,graph,startpts,endpts,bPoly) = response
-    ###print "<br/>Debug - optimize_02_3<br/>"
-    # Import shortest path algorithm
-    import dijkstra
-    # For each start point and end point
-    optimalPaths = [ dijkstra.shortestPath(graph,start,end) for end in endpts for start in startpts ]
-    #print "<br/>Debug - optimize_02_4<br/>"
-    # Initialize minimum distance to infinity
-    vol = float('inf')
-    # Initialize shortest path to false
-    sp = False
-    # For each path and distance, check to determine if shortest
-    for possiblePath in optimalPaths:
- #       print "possiblePath"
- #       print possiblePath
-        if possiblePath == (False,False):
-            pass
-        elif float(possiblePath[1]) < vol:
-            vol = float(possiblePath[1])
-            sp = possiblePath[0]
-        else:
-            pass
+    (graph,startpts,endpts,bPoly) = response
+
+    # Dictionary of costs to paths
+    SPs = {}
+
+    # Run shortest path algorithm for each start point and end point
+    for start in startpts:
+        for end in endpts:
+            path = nx.shortest_path(graph,source=start,target=end,weighted=True)
+            vol = nx.shortest_path_length(graph,source=start,target=end,weighted=True)
+            SPs[vol] = path
+
+    # Find minimum volume
+    minVol = min(SPs.keys())
+
+    # Select shortest path based on minimum volume
+    shortestPath = SPs[minVol]
+
     # Shortest path details variable holders
     path = []
     pts = []
     elev = []
     length = 0.0
+
     # Initialize volume variables
     dikeVol = 0.0
     toeVol = 0.0
@@ -402,63 +395,24 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     armorVol = 0.0
     foundVol = 0.0
     totalVol = 0.0
-    #print "<br/>Debug optimize_02<br/>"
-###    print "<table border=1>"
-###    print "<tr>"
-    #print "<td>%f</td>" % (length, )
-    #print "<td>%f</td><td>%f</td>" % (length, dikeVol, )
-###    print "<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % ('length', 'dikeVol', 'toeVol', 'coreVol', 'armorVol', 'foundVol', 'totalVol', )
-###    print "</tr><tr>"
-###    print "<td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td>" % (length, dikeVol, toeVol, coreVol, armorVol, foundVol, totalVol, )
 
-    try:
-        prev = False
-#        print "sp"
-#        print sp
-        #print graph
-        for v in sp:
-#            print "checking path"
-###            print "</tr><tr><td colspan=7>%s</td></tr><tr>" % (prev, )
-            # add up incremental volumes
-            if (eq == GeoUtils.constants.Equations.BMASW or eq == GeoUtils.constants.Equations.SMCDD or eq == GeoUtils.constants.Equations.KMB2) and prev:
-#                print graph[prev][v]
-#                print graph[prev][v]['length']
-#                print graph[prev][v]['elev']
-###                print "</tr><tr><td colspan=7>%s</td></tr><tr>" % (graph[prev][v], )
-                dikeVol += graph[prev][v]['dikeVol']
-                toeVol += graph[prev][v]['toeVol']
-                coreVol += graph[prev][v]['coreVol']
-                foundVol += graph[prev][v]['foundVol']
-                armorVol += graph[prev][v]['armorVol']
-                totalVol += graph[prev][v]['cost']
-###                print "</tr><tr>"
-###                print "<td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td><td>%f</td>" % (length, dikeVol, toeVol, coreVol, armorVol, foundVol, totalVol, )
-            # Add point details to paths
-            path.append(grid[v]["latlon"])
-            pts.append(grid[v]["metric"])
-            elev.append(float(grid[v]["elev"]))
-            # Set previous point to current point
-            prev = v
+    # Calculate piece volumes and path lists
+    for pt in range(0,len(shortestPath)):
+        if pt > 0:
+            dikeVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["dikeVol"]
+            toeVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["toeVol"]
+            coreVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["coreVol"]
+            foundVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["foundVol"]
+            armorVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["armorVol"]
 
-    except TypeError:
-        # Build error message
-        msg = '<h3>Error:</h3>\n'
-        msg += '<p>No optimal paths found, please change your parameters and try again.</p>\n<br/><br/>\n'
-        msg += '<p>Debugging information (TypeError):<br/>%s</p>\n' % (sp,)
-        # Output error message
-        output = GeoUtils.Interface.uniForm.fullErrorMsgGen(msg)
-        # Return error and message
-        # Function exits
-        return output,True
-
-###    print "</tr>"
-###    print "</table>"
+        path.append(graph.node[shortestPath[pt]]["latlon"])
+        pts.append(graph.node[shortestPath[pt]]["metric"])
+        elev.append(float(graph.node[shortestPath[pt]]["elev"]))
 
     # Average elevation along path
     avg_elev = sum(elev) / len(elev)
 
     #placeholder for the processed values of materials
-
     riprap_volume = -1
     aggregate_volume = -1
     rebar_volume = -1
@@ -471,6 +425,7 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     # Prepare values used to update database
     output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight)
+
     # Return output and no error
     return output,False
 
@@ -511,10 +466,8 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     for r in seldata:
         histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
         histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(riprap_volume)s','%(aggregate_volume)s','%(rebar_volume)s','%(cement_volume)s','%(riprap_weight)s','%(aggregate_weight)s','%(rebar_weight)s','%(cement_weight)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
-###        print histq
         histdata,histrc = DBhandle.query(histq)
 
-    #delq = 'DELETE FROM portprotector WHERE MBRIntersects(' + bPoly + ',path_geometry)'
     delq = 'DELETE FROM berm_model WHERE portID=%s' % (pid)
     deldata,delrc = DBhandle.query(delq)
 
@@ -529,13 +482,11 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
     insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight)
     insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
-###    print insertq
+
     insertdata,insertrc = DBhandle.query(insertq)
 
     # Return success and no error
     return True,False
-    # Return path and error to force path printing (for debugging)
-    #return path,True
 
 
 
