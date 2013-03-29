@@ -15,13 +15,15 @@ if __name__ == "__main__":
     DBhandle = GeoUtils.RDB()
     DBhandle.connect('uws_ge')
 
+    run_type = ''
     dataset_override = ""
     h_override = ""
     w_override = ""
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
     #h_override = 0.155
     #w_override = 0.095
+    run_type = 'networkx'
 
     simulation_equation = GeoUtils.constants.Equations.KMB2
     #simulation_equation = GeoUtils.constants.Equations.BMASW
@@ -47,8 +49,8 @@ if __name__ == "__main__":
 
     #all US10 one at a time
 
-    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 ')
-    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 114 ')
+    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 ')
+    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 114 ')
     #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 116 ')
     #corpus cristi won't work with this data set
     ###dataset_override = ""
@@ -109,7 +111,10 @@ if __name__ == "__main__":
             StartTime = time.time()
 
             portResult = 'failed'
-            response,error = berm_model.optimize(portID,h,w,simulation_equation,dataset)
+            if run_type == 'networkx' :
+                response,error = berm_model_networkx.optimize(portID,h,w,simulation_equation,dataset)
+            else :
+                response,error = berm_model.optimize(portID,h,w,simulation_equation,dataset)
             portResult = 'success'
 
             # Stop clock
@@ -134,7 +139,6 @@ if __name__ == "__main__":
                 path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight = response
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-#                response,error = portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
                 response,error = berm_model.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
                 print "attribution: %s" % ("Keith Mosher",)
