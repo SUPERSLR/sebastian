@@ -25,32 +25,32 @@ DBhandle.connect('uws_ge')
 def formGen(db,fields,type,id=0,ge_key="",edit=0):
     # Query database
     dbdata,rowcount = DBhandle.query(db['query'])
-    
+
     # If more than one row or no rows returned, raise error
     if rowcount > 1 or rowcount == 0:
         # Return error
         error = str(rowcount) + " database rows returned from edit history."
-        
+
         # Build error message
         msg = '<h3>There was an error while processing your request, please try again later.</h3>\n'
         msg += '<p>If you believe you have received this message in error, please ensure you have correctly downloaded your access file correctly.</p>\n'
         msg += '<p>For all other questions or comments, please contact us (%s), including the information below.</p>\n' % (GeoUtils.constants.contactEmail,)
         msg += '<p><em>%s</em></p>\n' % (error,)
-        
+
         # Output error message
         output = GeoUtils.Interface.uniForm.fullErrorMsgGen(msg)
-        
+
         # Function exits
         return output
-    
+
     # Record is first (only) row of data
     r = dbdata[0]
-    
+
     # Convert NAN/-9999 values to blanks
     for k in r:
         if r[k] == -9999 or r[k] == "-9999":
             r[k] = ""
-    
+
     # Dictionary of functions to generate form field
     fieldGen = {
             'text' : GeoUtils.Interface.uniForm.textGen,
@@ -61,13 +61,13 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
             'hidden' : GeoUtils.Interface.uniForm.hiddenGen,
             'errMsg' : GeoUtils.Interface.uniForm.errorGen
         }
-    
+
     # Form header
     output = '<form action="http://sebastian.underwatershipping.com/savedata/update.py" method="get" name="%s-%s" id="%s-%s" class="uniForm inlineLabels">\n' % (type,id,type,id)
-    
+
     fsk = fields.keys()
     fsk.sort()
-    
+
     for set in fsk:
         if set == 'zbuttons':
             # If no permission to edit, display error message instead of submit button
@@ -76,7 +76,7 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
                 msg = '<h3>You do not have permission to edit this feature.</h3>\n'
                 msg += '<p>If you believe you have received this message in error, please ensure you have correctly downloaded your access file correctly.</p>\n'
                 msg += '<p>For all other questions or comments, please contact us (%s).</p>\n' % (GeoUtils.constants.contactEmail,)
-                
+
                 # Add formatted error message to output
                 output += fieldGen.get('errMsg')(msg)
             else:
@@ -96,31 +96,32 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
         else:
             # Start fieldset
             output += '<fieldset>\n'
-            
+
             # Legend (header)
             output += '<legend>%s</legend>\n' % (set,)
-            
-            # For each field in set, 
+
+            # For each field in set,
             for f,o in fields[set].iteritems():
                 # If geometry specified, assume new geometry entry and set to blank
                 if str(o[3]) == 'feature_geometry' or str(o[3]) == '':
                     value = ''
                 else:
                     value = r[o[3]]
-                
+
                 # Get edit history item time
                 eTs = {
                        'PortChar' : 'PortChar',
                        'PortInfraPoly' : 'PortPoly',
                        'BasinPoly' : 'PortPoly',
                        'AvoidPoly' : 'PortPoly',
+                       'BermAvoidPoly' : 'PortPoly',
                        'StartEndPoly' : 'PortPoly',
                        'PortPoly' : 'PortPoly',
                        'ModelPath' : 'None'
                     }
-                
-                eType = eTs.get(str(type),'') 
-                
+
+                eType = eTs.get(str(type),'')
+
                 # If edit information is not to be displayed, show only hint
                 if eType == 'None':
                     # Set hint
@@ -129,7 +130,7 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
                     # Retrieve edit information from database
                     editq = 'SELECT attribution,timestamp FROM edit_history WHERE itemID="%s" AND field="%s" AND type="%s" ORDER BY timestamp DESC' % (id,o[3],eType)
                     editdata,editrowcount = DBhandle.query(editq)
-                    
+
                     # If no edits found, display never edited by N/A, otherwise take most recent result (first result)
                     if editrowcount == 0:
                         e = {
@@ -138,22 +139,22 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
                         }
                     else:
                         e = editdata[0]
-                    
+
                     # Set hint
                     hint = o[4] + '\n<br/>\n'
-                    
+
                     # Add edited information to hint
                     hint += '<em>Last edited %s by %s</em>\n' % (e["timestamp"],e["attribution"])
-                    
+
                 # Add formatted field to output
                 output += fieldGen.get(o[0])(options=o[2],id=f,label=o[1],value=value,hint=hint)
-            
+
             # Close fieldset
             output += '</fieldset>\n'
-    
+
     # Form footer
     output += '</form>\n'
-    
+
     # Return form output
     return output
 
@@ -164,15 +165,15 @@ if __name__ == "__main__":
     # Print content-type header
     print GeoUtils.Interface.ContentType("html")
     print
-    
+
     # Retrieve user information
     qv = []
-    
+
     # Import cgi module to get query string
     import cgi
-    
+
     qv = cgi.FieldStorage()
-    
+
     try:
         type = str(qv["type"].value)
         id = int(qv["id"].value)
@@ -185,32 +186,34 @@ if __name__ == "__main__":
         ge_key = ''
         edit = 0
         error = KeyError
-    
+
     formQuery = {
             "PortChar" : 'SELECT * FROM portdata WHERE ID="%s"' % (id,),
             "PortInfraPoly" : 'SELECT * FROM current_features WHERE ID="%s" AND feature_type="Port Infrastructure Polygon"' % (id,),
             "BasinPoly" : 'SELECT * FROM current_features WHERE ID="%s" AND feature_type="Basin Polygon"' % (id,),
             "AvoidPoly" : 'SELECT * FROM current_features WHERE ID="%s" AND feature_type="Model Avoid Polygon"' % (id,),
+            "BermAvoidPoly" : 'SELECT * FROM current_features WHERE ID="%s" AND feature_type="Berm Avoid Polygon"' % (id,),
             "StartEndPoly" : 'SELECT * FROM current_features WHERE ID="%s" AND feature_type="Model StartEnd Polygon"' % (id,),
             "ModelPath" : 'SELECT * FROM portprotector WHERE ID="%s"' % (id,),
             "UserNote" : 'SELECT * FROM notes WHERE ID="%s"' % (id,),
             "error" : 'SELECT * FROM portdata WHERE ID="0"'
         }
-    
+
     formFields = {
             "PortChar" : GeoUtils.data.FormDicts.PortChar,
             "PortInfraPoly" : GeoUtils.data.FormDicts.PortPoly,
             "BasinPoly" : GeoUtils.data.FormDicts.PortPoly,
             "AvoidPoly" : GeoUtils.data.FormDicts.PortPoly,
+            "BermAvoidPoly" : GeoUtils.data.FormDicts.PortPoly,
             "StartEndPoly" : GeoUtils.data.FormDicts.PortPoly,
             "PortPoly" : GeoUtils.data.FormDicts.PortPoly,
             "ModelPath" : GeoUtils.data.FormDicts.ModelPath,
             "UserNote" : GeoUtils.data.FormDicts.UserNote,
             "error" : ''
         }
-    
+
     db = { 'query' : formQuery.get(type) }
-    
+
     print GeoUtils.Interface.StdHTMLHeader(GeoUtils.Interface.uniForm.HTMLHeaderInfo())
     try:
         print formGen(db=db,fields=formFields.get(type),type=type,id=id,ge_key=ge_key,edit=edit)
@@ -220,7 +223,7 @@ if __name__ == "__main__":
         print traceback.format_exc()
         print '\n</pre>\n'
     print GeoUtils.Interface.StdHTMLFooter()
-    
+
     # Close database
     DBhandle.close()
 

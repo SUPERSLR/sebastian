@@ -192,6 +192,22 @@ def KMLstyles():
     kml_output += '<color>bf0b78ff</color>\n'
     kml_output += '</PolyStyle>\n</Style>\n\n'
 
+    # Berm Avoid polygons (transparent orange)
+    kml_output += '<StyleMap id="bermAvoidPolygon">\n'
+    kml_output += '<Pair>\n<key>normal</key>\n<styleUrl>#bermAvoidPolygonN</styleUrl>\n</Pair>\n'
+    kml_output += '<Pair>\n<key>highlight</key>\n<styleUrl>#bermAvoidPolygonH</styleUrl>\n</Pair>\n'
+    kml_output += '</StyleMap>\n\n'
+    kml_output += '<Style id="bermAvoidPolygonN">\n<PolyStyle>\n'
+    kml_output += '<color>bfff5555</color>\n'
+    kml_output += '</PolyStyle>\n</Style>\n\n'
+    kml_output += '<Style id="bermAvoidPolygonH">\n<BalloonStyle>\n'
+    kml_output += '<bgColor>fffea2a2</bgColor>\n'
+    kml_output += '<textColor>ff300502</textColor>\n'
+    kml_output += '<displayMode>default</displayMode>\n'
+    kml_output += '</BalloonStyle>\n<PolyStyle>\n'
+    kml_output += '<color>bfff5555</color>\n'
+    kml_output += '</PolyStyle>\n</Style>\n\n'
+
     # Model StartEnd polygons (transparent lime green)
     kml_output += '<StyleMap id="startEndPolygon">\n'
     kml_output += '<Pair>\n<key>normal</key>\n<styleUrl>#startEndPolygonN</styleUrl>\n</Pair>\n'

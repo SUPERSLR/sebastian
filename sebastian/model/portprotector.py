@@ -220,6 +220,32 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         # Check vertices for appropriate inclusion in start and end points
         spts = [ v for v in grid if startpoly.containsPoint(GeoUtils.Features.Point(x=grid[v]["latlon"][0],y=grid[v]["latlon"][1])) ]
         epts = [ v for v in grid if endpoly.containsPoint(GeoUtils.Features.Point(x=grid[v]["latlon"][0],y=grid[v]["latlon"][1])) ]
+
+
+        print "spts count: %s, pre-selecting 1" % (len(spts))
+        print "epts count: %s, pre-selecting 1" % (len(epts))
+        current_elev = -9999
+        best_spt_v = 0
+        for v in spts :
+#            print "spts v: %s elev: %s" % (v,grid[v]["elev"])
+            if grid[v]["elev"] > current_elev :
+                current_elev = grid[v]["elev"]
+                best_spt_v = v
+
+        current_elev = -9999
+        best_ept_v = 0
+        for v in epts :
+#            print "epts v: %s elev: %s" % (v,grid[v]["elev"])
+            if grid[v]["elev"] > current_elev :
+                current_elev = grid[v]["elev"]
+                best_ept_v = v
+
+        if best_spt_v <> 0 :
+            print "best spt: %s %s" % (best_spt_v,grid[best_spt_v]["elev"])
+            spts = [best_spt_v]
+        if best_ept_v <> 0 :
+            print "best ept: %s %s" % (best_ept_v,grid[best_ept_v]["elev"])
+            epts = [best_ept_v]
     else:
         # Return error message
         errtxt = "There was an error while retrieving the starting and ending polygons.<br/><br/>\n"

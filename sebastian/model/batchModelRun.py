@@ -19,10 +19,10 @@ if __name__ == "__main__":
     h_override = ""
     w_override = ""
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE30SEC
-    dataset_override = GeoUtils.constants.ElevSrc.GOOGLEP3SEC
-    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    #h_override = 0.05
-    #w_override = 0.05
+    #dataset_override = GeoUtils.constants.ElevSrc.GOOGLEP3SEC
+    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    #h_override = 0.15
+    #w_override = 0.09
 
     #simulation_equation = GeoUtils.constants.Equations.KMB2
     simulation_equation = GeoUtils.constants.Equations.BMASW
@@ -30,7 +30,8 @@ if __name__ == "__main__":
     #IDs, count = DBhandle.query('SELECT DISTINCT portID FROM portprotector')
     #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata')
     #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 or id = 114 or id = 116 or id = 117 or id = 125 or id = 127 or id = 131 or id = 135 or id = 141 or id = 180')
-    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112')
+    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 114')
+    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 117 or id = 141 or id = 180')
 
     print 'Ports to update:' + str(count)
     print

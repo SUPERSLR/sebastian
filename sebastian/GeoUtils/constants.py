@@ -39,6 +39,7 @@ ElevSize = {
       #  ElevSrc.GOOGLEP3SEC : 0.0083333333333,
         ElevSrc.GOOGLEP3SEC : 0.0008333,
         ElevSrc.NOAAASTER30M : 0.0002777,
+      #  ElevSrc.NOAAASTER30M : 0.0011108,
     }
 
 ElevRegions = {

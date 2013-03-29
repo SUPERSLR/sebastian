@@ -306,6 +306,12 @@ class InterfaceDicts:
             'Add a Note' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'UserNote'}]
         }
 
+    BermPath = {
+            'View Berm Data' : ['lens','/sebastian/interface/edit.py',['id','type','GE_KEY'],{'edit' : '0'}],
+            'Add Port Polygon' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'PortPoly'}],
+            'Add a Note' : ['add','/sebastian/interface/create.py',['id','GE_KEY','edit'],{'type' : 'UserNote'}]
+        }
+
     Country = {
                 'View/Edit Country Info' : ['lens', '/sebastian/interface/edit.py', ['id', 'type', 'GE_KEY', 'edit'], {'' : ''}]
         }

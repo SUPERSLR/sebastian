@@ -1499,9 +1499,41 @@ CREATE TABLE `elev_data_all_google_web_service_point3sec` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
+/* add temp google data table for old boston noaa_aster_000277sec*/
+use uws_maps;
+
+DROP TABLE IF EXISTS `elev_data_all_google_web_service_3sec`;
+CREATE TABLE `elev_data_all_google_web_service_3sec` (
+  `latitude` double NOT NULL,
+  `longitude` double NOT NULL,
+  `elevation` double NOT NULL,
+  `source` tinytext NOT NULL,
+  KEY `latitude` (`latitude`),
+  KEY `longitude` (`longitude`),
+  KEY `source` (`source`(4))
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 insert into uws_maps.elev_data_shard02_google_web_service_30sec (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_google_web_service_30sec where ((longitude>=-121 and longitude<=-59) or (false)) and source = 'google_web_service_30sec');
 
 
 insert into uws_maps.elev_data_shard02_google_web_service_point3sec (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_google_web_service_point3sec where ((longitude>=-121 and longitude<=-59) or (false)) and source = 'google_web_service_point3sec');
 
+insert into uws_maps.elev_data_shard02_google_web_service_3sec (latitude,longitude,elevation,source) (select latitude,longitude,elevation,source from uws_maps.elev_data_all_google_web_service_3sec where ((longitude>=-121 and longitude<=-59) or (false)) and source = 'google_web_service_3sec');
+
+/* update port grid sizes */
+update portdata set grid_width=0.1, grid_height=0.1 where id = 180;
+
+
+/* change grid size for unmarked US10 ports oakland and gulfport */
+update portdata set grid_width=0.1, grid_height=0.1 where id=180;
+update portdata set grid_width=0.09, grid_height=0.15 where id = 131;
+update portdata set grid_width=0.16, grid_height=0.22 where id = 135;
+update portdata set grid_width=0.2, grid_height=0.15 where id = 116;
+
+
+/* add berm specific max and min values */
+alter table modelparameters add column max_elevation_berm FLOAT NOT NULL after min_elevation_cit_id;
+alter table modelparameters add column min_elevation_berm FLOAT NOT NULL after max_elevation_berm;
+alter table modelparameters add column max_elevation_berm_cit_id INT NOT NULL DEFAULT 0 after max_elevation_berm;
+alter table modelparameters add column min_elevation_berm_cit_id INT NOT NULL DEFAULT 0 after min_elevation_berm;
 
