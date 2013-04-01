@@ -312,12 +312,12 @@ def multiDikeSingleBermCombo(length, elev, params):
     if dikeVolume < 0.0:
         # This implies that the dike height is very low and the elevation is very high.
         # Assume these areas don't really need a dike (over land). Negative numbers break
-        # the routing algorithm, so set everything to 0.
-        dikeVolume = 0.0
-        coreVolume = 0.0
-        toeVolume = 0.0
-        armorVolume = 0.0
-        foundVolume = 0.0
+        # the routing algorithm, so set everything to 0 (changing to .1 to encourage shorter paths -km).
+        dikeVolume = 0.10
+        coreVolume = 0.10
+        toeVolume = 0.10
+        armorVolume = 0.10
+        foundVolume = 0.10
 
 
     max_depth = float(params['min_elevation'])

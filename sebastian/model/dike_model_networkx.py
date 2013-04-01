@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Keith Mosher
-# sebastian/model/berm_model.py
-# Optimization model for Port Protector berm design using networkx package
+# sebastian/model/dike_model_networkx.py
+# Optimization model for Port Protector design using networkx package
 
 # Import required modules
 import sys, os
@@ -30,7 +30,6 @@ elevDBhandle.connect('uws_maps')
 #elevDBhandle.connect('uws_ge')
 
 
-
 def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoUtils.constants.ElevSrc.DEFAULT30SEC):
     '''
     Create network from elevation grid
@@ -45,7 +44,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     '''
     import time
     startMakeNetworkTime = time.time()
-    print "berm netx makeNetworkx, current time: %s, elapsed time: %s" % (time.time(), time.time()-startMakeNetworkTime)
+    print "dike netx makeNetworkx, current time: %s, elapsed time: %s" % (time.time(), time.time()-startMakeNetworkTime)
     # Query database for port details
     portq = "SELECT ID,name,latitude,longitude FROM portdata WHERE ID='%s'" % (pid,)
     portdata,portrowcount = DBhandle.query(portq)
@@ -80,8 +79,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 
     # Query database for associated port polygons
     polyq = "SELECT ID,AsText(feature_geometry) FROM current_features WHERE "
-    #polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Model Avoid Polygon') "
-    polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Berm Avoid Polygon') "
+    polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = 'Model Avoid Polygon') "
     polyq += "AND MBRIntersects(%s,feature_geometry)" % (boundingPoly,)
     polydata,polyrowcount = DBhandle.query(polyq)
 
@@ -215,8 +213,8 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
 
     # Add vertices excluded by parameters to delete list
-    #   Current disqualifying parameters: max_elevation_berm, min_elevation_berm
-    del_keys.extend([ v for v in graph.nodes(data=False) if graph.node[v]["elev"] > float(params['max_elevation_berm']) or graph.node[v]["elev"] < float(params['min_elevation_berm']) ])
+    #   Current disqualifying parameters: max_elevation, min_elevation
+    del_keys.extend([ v for v in graph.nodes(data=False) if graph.node[v]["elev"] > float(params['max_elevation']) or graph.node[v]["elev"] < float(params['min_elevation']) ])
 
     # Delete listed keys from available vertices
     for v in del_keys:
@@ -259,7 +257,6 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         if best_ept_v <> 0 :
             print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,graph.node[best_ept_v]["elev"])
             epts = [best_ept_v]
-
     else:
         # Return error message
         errtxt = "There was an error while retrieving the starting and ending polygons.<br/><br/>\n"
@@ -307,6 +304,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                 # Calculate average elevation
                 avg_elev = (float(graph.node[v]["elev"]) + float(graph.node[k]["elev"])) / 2
 
+
                 # Get cost for edge
                 edge_vals = eqns.get(eq)(dist["total"],avg_elev,params)
                 weight = edge_vals['cost']
@@ -315,7 +313,6 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                 if not graph.has_edge(v,k):
                     graph.add_edge(v,k,weight=weight,vars=edge_vals)
 #                    graph.add_edge(v,k,weight=weight,vars=vars)
-
 
 
     print "makeNetworkx, graph-complete, function-complete, current time: %s" % (time.time()-startMakeNetworkTime)
@@ -423,7 +420,7 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,eq,elevdata,computeCenter,grid_height,grid_width):
     #print 'updateDB running'
     '''
-    Update database with berm_model result
+    Update database with dike model result
 
     Parameters
         @param ge_key - user's identifying key
@@ -448,16 +445,16 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     user = DBhandle.ConnUserName()
 
     # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM berm_model WHERE '
+    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM portprotector WHERE '
     selq += 'portID=%s' % (pid)
     seldata,selrc = DBhandle.query(selq)
 
     for r in seldata:
-        histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
+        histq = "INSERT INTO portprotector_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
         histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(riprap_volume)s','%(aggregate_volume)s','%(rebar_volume)s','%(cement_volume)s','%(riprap_weight)s','%(aggregate_weight)s','%(rebar_weight)s','%(cement_weight)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
         histdata,histrc = DBhandle.query(histq)
 
-    delq = 'DELETE FROM berm_model WHERE portID=%s' % (pid)
+    delq = 'DELETE FROM portprotector WHERE portID=%s' % (pid)
     deldata,delrc = DBhandle.query(delq)
 
     # Create path for linestring creation
@@ -465,7 +462,7 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     ShortestPath.fromPointList(path)
 
     # Insert shortest path and volume into database
-    insertq = "INSERT INTO berm_model (portID,attribution,avg_elev,path_length,path_volume," +\
+    insertq = "INSERT INTO portprotector (portID,attribution,avg_elev,path_length,path_volume," +\
             "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight," +\
             "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
     insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)

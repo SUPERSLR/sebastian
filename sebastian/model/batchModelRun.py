@@ -15,25 +15,59 @@ if __name__ == "__main__":
     DBhandle = GeoUtils.RDB()
     DBhandle.connect('uws_ge')
 
+    run_type = ''
     dataset_override = ""
     h_override = ""
     w_override = ""
-    #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE30SEC
-    #dataset_override = GeoUtils.constants.ElevSrc.GOOGLEP3SEC
-    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    #h_override = 0.15
-    #w_override = 0.09
+    #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
+    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    #h_override = 0.20
+    #w_override = 0.17
+    #run_type = 'networkx'
 
     #simulation_equation = GeoUtils.constants.Equations.KMB2
     simulation_equation = GeoUtils.constants.Equations.BMASW
 
-    #IDs, count = DBhandle.query('SELECT DISTINCT portID FROM portprotector')
-    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata')
-    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 or id = 114 or id = 116 or id = 117 or id = 125 or id = 127 or id = 131 or id = 135 or id = 141 or id = 180')
-    #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 114')
-    portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 117 or id = 141 or id = 180')
+    if len(sys.argv) > 1 :
+        port_number = int(sys.argv[1])
+        portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = %s' % (port_number))
+        if len(sys.argv) > 2 and sys.argv[2] == 'x' :
+            run_type = 'networkx'
+    else :
+        #IDs, count = DBhandle.query('SELECT DISTINCT portID FROM portprotector')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id > 113 and id < 115')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 or id = 116 or id = 117 or id = 125 or id = 135')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 125')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 117 or id = 141 or id = 180')
 
-    print 'Ports to update:' + str(count)
+        #location problems
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 117')
+
+
+        #polygon problems
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 116')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 125')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 135')
+
+
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 or id = 114 or id = 116 or id = 117 or id = 125 or id = 127 or id = 131 or id = 135 or id = 141 or id = 180 order by id desc')
+        #all US10 one at a time
+
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 114 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 116 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 117 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 125 ')
+        portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 127 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 131 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 135 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 141 ')
+        #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 180')
+
+    print 'Ports dikes to update:' + str(count)
     print
 
     totalTime = 0
@@ -42,6 +76,7 @@ if __name__ == "__main__":
     # Import time module to record runtime
     import time
     import portprotector
+    import dike_model_networkx
     for port in portdata:
         try:
             h = 0
@@ -56,9 +91,6 @@ if __name__ == "__main__":
                 w = port['grid_width']
             else :
                 w = w_override
-
-            #h = port['grid_height']
-            #w = port['grid_width']
 
             if h == 0:
                 h = 0.25
@@ -82,7 +114,10 @@ if __name__ == "__main__":
             StartTime = time.time()
 
             portResult = 'failed'
-            response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset)
+            if run_type == 'networkx' :
+                response,error = dike_model_networkx.optimize(portID,h,w,simulation_equation,dataset)
+            else :
+                response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset)
             portResult = 'success'
 
             # Stop clock
@@ -102,15 +137,13 @@ if __name__ == "__main__":
             else:
                 # Unpack response from optimization
                 print 'Success'
-###                print response
-#                path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol = response
                 path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight = response
+
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-#                response,error = portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
                 response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
-                print "attribution: %s" % ("Keith Mosher",)
+                #print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)
                 print "elev_data: %s" % (dataset,)
                 print "avg_elev: %s" % (avg_elev,)
@@ -119,15 +152,15 @@ if __name__ == "__main__":
                 ShortestPath.fromPointList(path)
                 print "path_length: %s" % (ShortestPath.length(),)
                 print "path_volume: %s" % (vol,)
-                print "dike_volume: %s" % (dikeVol,)
-                print "core_volume: %s" % (coreVol,)
-                print "toe_volume: %s" % (toeVol,)
-                print "foundation_volume: %s" % (foundVol,)
-                print "armor_volume: %s" % (armorVol,)
+                #print "dike_volume: %s" % (dikeVol,)
+                #print "core_volume: %s" % (coreVol,)
+                #print "toe_volume: %s" % (toeVol,)
+                #print "foundation_volume: %s" % (foundVol,)
+                #print "armor_volume: %s" % (armorVol,)
                 print "computeCenter: %s" % (GeoUtils.constants.computeCenter(),)
-                print "grid_height: %s" % (h,)
-                print "grid_width: %s" % (w,)
-#                print portprotector.updateDB('2ee9a2ec7ebffaecc61f8f011981852e',portID,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,GeoUtils.constants.Equations.BMASW,port['elev_data'],GeoUtils.constants.computeCenter(),h,w)
+                #print "grid_height: %s" % (h,)
+                #print "grid_width: %s" % (w,)
+
                 ###print error
                 if error == True:
                     # Output error message
@@ -142,5 +175,4 @@ if __name__ == "__main__":
             print 'Unexpected error:<br/><br/>\n<pre>\n%s\n</pre>\n<br/>\n\n' % (traceback.format_exc(),)
             continue
 
-#    print portprotector.optimize(6, '', .25, .25, GeoUtils.constants.Equations.BMASW, GeoUtils.constants.ElevSrc.DEFAULT30SEC)
     print GeoUtils.Interface.StdHTMLFooter()

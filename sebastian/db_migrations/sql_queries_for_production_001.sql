@@ -1528,9 +1528,11 @@ update portdata set grid_width=0.1, grid_height=0.1 where id = 180;
 update portdata set grid_width=0.1, grid_height=0.1 where id=180;
 update portdata set grid_width=0.09, grid_height=0.15 where id = 131;
 update portdata set grid_width=0.16, grid_height=0.22 where id = 135;
-update portdata set grid_width=0.2, grid_height=0.15 where id = 116;
-
-
+update portdata set grid_width=0.195, grid_height=0.13 where id = 116;
+ update portdata set grid_width=0.20, grid_height=0.17 where id = 117;
+  update portdata set grid_width=0.14, grid_height=0.20 where id = 116;
+  
+ update portdata set grid_width=0.135, grid_height=0.195 where id = 116;
 /* add berm specific max and min values */
 alter table modelparameters add column max_elevation_berm FLOAT NOT NULL after min_elevation_cit_id;
 alter table modelparameters add column min_elevation_berm FLOAT NOT NULL after max_elevation_berm;
