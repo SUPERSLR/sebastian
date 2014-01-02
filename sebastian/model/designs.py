@@ -245,6 +245,7 @@ def SMCDD(length, elev, params):
 # Nathan Chase's SUPERSLR Design 10/2013
 # Implemented by Keith Mosher
 def multiDikeSingleBermCombo(length, elev, params):
+    print "multiDikeSingleBermCombo with 10/13 formula"
     # Set parameters
     # sea level rise height
     slr = float(params['sea_level_rise'])
@@ -339,12 +340,12 @@ def multiDikeSingleBermCombo(length, elev, params):
 
 #NOTE TODO Update elev calculations
 #NOTE elev appears to be the inverse of height, possibly set height values as -elev?  maybe only for rubble breakwater and floodwall
-        caisson_breakwater_length =  #E14 #=
-        caisson_breakwater_height =  #E15 #=
-        caisson_floodwall_length =  #E10 #=
-        caisson_floodwall_height =  #E11 #=
-        rubble_breakwater_length =  #E12 #=
-        rubble_breakwater_height =  #E13 #=
+        caisson_breakwater_length =  length #E14 #=
+        caisson_breakwater_height = -elev #E15 #=
+        caisson_floodwall_length =  length #E10 #=
+        caisson_floodwall_height =  -elev #E11 #=
+        rubble_breakwater_length =  length #E12 #=
+        rubble_breakwater_height =  -elev #E13 #=
 
 
         # core, quarry run stone, part 1 (part 2 near bottom) (10/13)
@@ -380,7 +381,6 @@ def multiDikeSingleBermCombo(length, elev, params):
         leveling_course_depth = 0.5 #E60 #moved up above caisson cap
         rectangular_caissons_base_width = 5. #E86
         rectangular_caissons_number_of_units = 2. #E84
-         = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25)
         rectangular_caissons_height = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25) #moved up above caisson cap
         if elev > -25:
             rectangular_caissons_height = (-elev) - core_depth - leveling_course_depth #E74 #=E$15-E$37-E$60
@@ -688,12 +688,12 @@ def multiDikeSingleBermCombo(length, elev, params):
 
 
         #CONSTRUCTION MATERIALS SUMMARY
-        sand =  sloped_caissons_volume_sand + rectangular_caissons_volume_sand #m³ =SUM(E81;E91)
-        gravel =  leveling_course_volume + filter_toe_berm_gravel_seaside_volume + granular_filter_gravel_total_cross_sectional_length + filter_toe_berm_gravel_leeside_volume + excavate_and_replace_with_compacted_gravel_volume_of_gravel #m³ =SUM(E63;E157;E164;E199;E212)
-        quarry_run_stone =  dredge_and_replace_volume + core_volume + dredge_and_replace_with_quarry_run_stone_volume + core_quarry_run_stone_volume #m³ =SUM(E34;E40;E143;E150)
-        large_riprap =  primary_armor_berm_volume + leeside_armor_berm_volume + primary_armor_large_riprap_volume #m³ =SUM(E57;E130;E185)
-        small_riprap =  scour_blanket_toe_berm_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m³ =SUM(E47;E171;E177;E192)
-        concrete = primary_mass_volume + sloped_caissons_volume_concrete + rectangular_caissons_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume + leeside_mass_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m³ =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
+        sand =  sloped_caissons_volume_sand + rectangular_caissons_volume_sand #m^3 =SUM(E81;E91)
+        gravel =  leveling_course_volume + filter_toe_berm_gravel_seaside_volume + granular_filter_gravel_total_cross_sectional_length + filter_toe_berm_gravel_leeside_volume + excavate_and_replace_with_compacted_gravel_volume_of_gravel #m^3 =SUM(E63;E157;E164;E199;E212)
+        quarry_run_stone =  dredge_and_replace_volume + core_volume + dredge_and_replace_with_quarry_run_stone_volume + core_quarry_run_stone_volume #m^3 =SUM(E34;E40;E143;E150)
+        large_riprap =  primary_armor_berm_volume + leeside_armor_berm_volume + primary_armor_large_riprap_volume #m^3 =SUM(E57;E130;E185)
+        small_riprap =  scour_blanket_toe_berm_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m^3 =SUM(E47;E171;E177;E192)
+        concrete = primary_mass_volume + sloped_caissons_volume_concrete + rectangular_caissons_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume + leeside_mass_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
         structural_steel = ( stabilization_slab_mass_of_reinforcing_steel + base_slab_mass_of_reinforcing_steel + base_slab_mass_of_sheet_pile_steel + h_pile_supports_mass_of_reinforcing_steel + wall_stem_mass_of_reinforcing_steel ) / 1000 #tonv =SUM(E221;E232;E235;E245;E255)/1000
 
         #### Rubble Mound

@@ -21,13 +21,13 @@ if __name__ == "__main__":
     w_override = ""
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
     #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #h_override = 0.20
     #w_override = 0.17
-    #run_type = 'networkx'
+    run_type = 'networkx'
 
-    #simulation_equation = GeoUtils.constants.Equations.KMB2
-    simulation_equation = GeoUtils.constants.Equations.BMASW
+    simulation_equation = GeoUtils.constants.Equations.KMB2
+    #simulation_equation = GeoUtils.constants.Equations.BMASW
 
     if len(sys.argv) > 1 :
         port_number = int(sys.argv[1])
