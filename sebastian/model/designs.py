@@ -242,9 +242,488 @@ def SMCDD(length, elev, params):
             }
 
 
-# Nathan Chase's SUPERSLR Design
+# Nathan Chase's SUPERSLR Design 10/2013
 # Implemented by Keith Mosher
 def multiDikeSingleBermCombo(length, elev, params):
+    # Set parameters
+    # sea level rise height
+    slr = float(params['sea_level_rise'])
+    # freeboard height
+    freeboard = float(params['freeboard'])
+    # design wave height
+    wave = float(params['design_wave_height'])
+    # storm surge height
+    surge = float(params['storm_surge'])
+    # mean high-high tide height
+    highTide = float(params['mean_high_high_tide'])
+    # mean low-low tide height
+    lowTide = float(params['mean_low_low_tide'])
+    # dike flat top width
+    dikeTop = float(params['dike_flat_top'])
+    # foundation height
+    foundHt = float(params['foundation_height'])
+    # toe height
+    toeHt = float(params['toe_height'])
+    # outer toe slope
+    toeOutSlope = float(params['outer_toe_slope'])
+    # inner toe slope
+    toeInSlope = float(params['inner_toe_slope'])
+    # outer core slope
+    coreOutSlope = float(params['outer_core_slope'])
+    # inner core slope
+    coreInSlope = float(params['inner_core_slope'])
+    # core flat top
+    coreTop = float(params['core_flat_top'])
+    # core height
+    coreHt = float(params['core_height'])
+    # outer dike slope
+    dikeOutSlope = float(params['outer_dike_slope'])
+    # inner dike slope
+    dikeInSlope = float(params['inner_dike_slope'])
+    # armor depth
+    armorDepth = float(params['armor_depth'])
+
+
+
+   # triangular toe
+    toeBase = toeOutSlope * toeHt + toeInSlope * toeHt
+    toeVolume = 0.5 * toeBase * toeHt * length
+
+    # trapezoidal core
+    coreBase = coreInSlope * coreHt + coreOutSlope * coreHt + coreTop
+    coreVolume = 0.5 * (coreBase + coreTop) * coreHt * length
+
+    # trapezoidal shape
+    dikeHt = highTide + surge + wave + freeboard + slr - elev
+    dikeBase = dikeOutSlope * dikeHt + dikeInSlope * dikeHt + dikeTop
+    # volume of trapezoid, but subtract out toe and core volumes
+    dikeVolume = 0.5 * (dikeBase + dikeTop) * dikeHt * length - toeVolume - coreVolume
+
+    # foundation just a rectangle under the base
+    foundBase = toeBase + dikeBase
+    foundVolume = foundBase * foundHt * length
+
+    # armoring - find surface area of dike, then add a layer of armoring
+    outerSurfaceArea = ((dikeOutSlope * dikeHt) ** 2.0 + dikeHt ** 2.0) ** 0.5 * length
+    innerSurfaceArea = ((dikeInSlope * dikeHt) ** 2.0 + dikeHt ** 2.0) ** 0.5 * length
+    surfaceArea = outerSurfaceArea + innerSurfaceArea
+    armorVolume = surfaceArea * armorDepth
+
+    if dikeVolume < 0.0:
+        # This implies that the dike height is very low and the elevation is very high.
+        # Assume these areas don't really need a dike (over land). Negative numbers break
+        # the routing algorithm, so set everything to 0 (changing to .1 to encourage shorter paths -km).
+        dikeVolume = 0.10
+        coreVolume = 0.10
+        toeVolume = 0.10
+        armorVolume = 0.10
+        foundVolume = 0.10
+
+
+    max_depth = float(params['min_elevation'])
+    #print "KMB2 length: %s elev: %s max_depth: %s" % (length, elev, max_depth)
+
+    #TODO break out Caisson Breakwater, Rubble Mound Breakwater, and Cantilever Floodwall
+    if elev > 0 :
+        leeside_armor_berm_depth = 1
+        #print "berm"
+    elif elev <=0 and elev > -10 :
+        leeside_armor_berm_depth = 1
+        #print "rubble mound breakwater"
+    elif elev <= -10 and elev >= max_depth :
+        #print "deep breakwater"
+
+
+        density_of_steel = 7850 # kg/m3 #$LUTs.D$3
+        density_of_concrete = 2400 # kg/m3 #$LUTs.D$4
+
+#NOTE TODO Update elev calculations
+#NOTE elev appears to be the inverse of height, possibly set height values as -elev?  maybe only for rubble breakwater and floodwall
+        caisson_breakwater_length =  #E14 #=
+        caisson_breakwater_height =  #E15 #=
+        caisson_floodwall_length =  #E10 #=
+        caisson_floodwall_height =  #E11 #=
+        rubble_breakwater_length =  #E12 #=
+        rubble_breakwater_height =  #E13 #=
+
+
+        # core, quarry run stone, part 1 (part 2 near bottom) (10/13)
+        core_depth = 2. #E37 #=IF(E15<25;2;2+(E15-25)/3)
+        if elev < -25.:
+            core_depth = 2. + (((-elev) - 25.) / 3.) #E25 #=IF(E14<25,2,2+(E14-25)/3)
+
+        # leeside_armor_berm, large riprap (10/13)
+        leeside_armor_berm_depth = 2. #E123
+        leeside_armor_berm_width_toe = 3. #E124
+        leeside_armor_berm_slope_1v = 2. #E125
+        leeside_armor_berm_width_top = 3. #E126
+        leeside_armor_berm_width_sloped = (core_depth - (leeside_armor_berm_depth * 2.)) * leeside_armor_berm_slope_1v   #E127 #=(E37-E123*2)*E125
+        leeside_armor_berm_width_total = leeside_armor_berm_width_toe + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #E128 #=E127+E124+E126
+        #E129 caisson_breakwater_length
+        leeside_armor_berm_volume = leeside_armor_berm_depth * leeside_armor_berm_width_total * caisson_breakwater_length #E130 #=E123*E128*E129
+
+        # leeside_mass, concrete block (10/13)
+        leeside_mass_number_of_units = 1. #E116
+        leeside_mass_height = max(1.5, elev/20.) #E117 #=MAX(1.5;E$15/20)
+        leeside_mass_width = max(1.5, elev/20.) #E118 #=MAX(1.5;E$15/20)
+        #E119 caisson_breakwater_length
+        leeside_mass_volume = leeside_mass_number_of_units * leeside_mass_height * leeside_mass_width * caisson_breakwater_length #E120 #=E116*E117*E118*E119
+
+        # TODO find and code freeboard
+        # caisson cap seaside parapet wall, concrete (10/13)
+        caisson_cap_seaside_parapet_wall_height = freeboard #E110
+        caisson_cap_seaside_parapet_wall_width = caisson_cap_seaside_parapet_wall_height / 2. #E111 #=E110/2
+        #E112 caisson_breakwater_length
+        caisson_cap_seaside_parapet_wall_volume = caisson_cap_seaside_parapet_wall_height * caisson_cap_seaside_parapet_wall_width * caisson_breakwater_length #E113 #=E110*E111*E112
+
+        # partial sloped and rectangular caisson values moved above for ordered cap calculations - km 11/25/2013 (10/13)
+        leveling_course_depth = 0.5 #E60 #moved up above caisson cap
+        rectangular_caissons_base_width = 5. #E86
+        rectangular_caissons_number_of_units = 2. #E84
+         = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25)
+        rectangular_caissons_height = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25) #moved up above caisson cap
+        if elev > -25:
+            rectangular_caissons_height = (-elev) - core_depth - leveling_course_depth #E74 #=E$15-E$37-E$60
+        sloped_caissons_slope_1h = 6. #E76
+        sloped_caissons_base_width = sloped_caissons_height / sloped_caissons_slope_1h #E75 #=E74/E76
+        sloped_caissons_number_of_units = 2. #E73
+        sloped_caissons_wall_thickness = 0.75 #E78 #=IF(E$15<30;0.5;0.75)
+        if elev > -30:
+            sloped_caissons_wall_thickness = 0.5 #E78 #=IF(E$15<30;0.5;0.75)
+
+
+        # caisson_cap (10/13)
+        caisson_cap_depth = 2. #E104
+        caisson_cap_width = rectangular_caissons_base_width * rectangular_caissons_number_of_units + 2. * sloped_caissons_wall_thickness #E105 #=E84*E86+2*E78
+        #E106 caisson_breakwater_length
+        caisson_cap_volume = caisson_cap_depth * caisson_cap_width * caisson_breakwater_length #E107 #=E104*E105*E106
+
+        # intermediate caisson walls (10/13)
+        intermediate_caisson_walls_spacing_interval = 6. #E95
+        intermediate_caisson_walls_number_of_units = caisson_breakwater_length / intermediate_caisson_walls_spacing_interval #E96 # =E$14/E95
+        intermediate_caisson_walls_height = rectangular_caissons_height #E97 #=E85
+        intermediate_caisson_walls_base_width = rectangular_caissons_number_of_units * rectangular_caissons_base_width + sloped_caissons_number_of_units * sloped_caissons_base_width #E98 # =E84*E86+E73*E75
+        intermediate_caisson_walls_top_width = caisson_cap_width #E99 # =E105
+        intermediate_caisson_walls_wall_thickness = 0.75 #E100 #=IF(E$15<30;0.5;0.75)
+        if elev > -30:
+            intermediate_caisson_walls_wall_thickness = 0.5 #E100 #=IF(E$15<30;0.5;0.75)
+        intermediate_caisson_walls_volume_concrete = intermediate_caisson_walls_number_of_units * intermediate_caisson_walls_height * (intermediate_caisson_walls_base_width + intermediate_caisson_walls_top_width) / 2. * intermediate_caisson_walls_wall_thickness #E101 #=E96*E97*(E98+E99)/2*E100
+
+        # primary_mass, concrete block (10/13)
+        # moved above sloped and regular caissons for ordered calculations
+        # - km 11/25/2013
+        primary_mass_number_of_units = 2. #E66
+        primary_mass_height = max(1.5, elev/20.) #2. #E67 #=MAX(1.5;E$15/20)
+        primary_mass_width = max(1.5, elev/20.) #2. #E68 #=MAX(1.5;E$15/20)
+        #E69 caisson_breakwater_length
+        primary_mass_volume = primary_mass_number_of_units * primary_mass_height * primary_mass_width * caisson_breakwater_length #E70 #=E66*E67*E68*E69
+
+        # leveling_course, gravel (10/13)
+        # moved above sloped and regular caissons for ordered calculations
+        # - km 11/25/2013
+        #leveling_course_depth = 0.5 #E60 #moved up above caisson cap
+        leveling_course_width = primary_mass_number_of_units * primary_mass_width + caisson_cap_width + leeside_mass_number_of_units * leeside_mass_width #E61 #=E66*E68+E105+E116*E118
+        #E62 caisson_breakwater_length
+        leveling_course_volume = leveling_course_depth * leveling_course_width * caisson_breakwater_length #E63 #=E60*E61*E62
+
+        # rectangular_caissons, concrete filled with sand (10/13)
+        #rectangular_caissons_number_of_units = 2. #E84 #moved up above caisson cap
+        # Rectangular and sloped caissons have the same height, according to the
+        # spreadsheet, with sloped calculated and rectangular set to the
+        # value from sloped.  Because of the ordering of the code, I've
+        # reversed that and calculated rectangular and set sloped equal to it
+        # km - 11/24/2013
+        #rectangular_caissons_height = sloped_caissons_height #E85 #=E74
+        #E74 =IF(E$15<25;E$15-E$37-E$60;25-2+2/3*(E$15-25-E$60))
+        #rectangular_caissons_height = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25) #moved up above caisson cap
+        #if elev > -25:
+        #    rectangular_caissons_height = (-elev) - core_depth - leveling_course_depth #E74 #=E$15-E$37-E$60
+        #rectangular_caissons_base_width = 5. #E86 #moved up above caisson cap
+        #E87 caisson_breakwater_length
+        rectangular_caissons_wall_thickness = 0.5 #E88
+        rectangular_caissons_base_slab_thickness = 0.75 #E89 #=IF(E$15<30;0.5;0.75)
+        if elev > -30:
+            rectangular_caissons_base_slab_thickness = 0.5 #E89 #=IF(E$15<30;0.5;0.75)
+        rectangular_caissons_volume_concrete = ((rectangular_caissons_height * rectangular_caissons_base_width) - ((rectangular_caissons_base_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_height - rectangular_caissons_base_slab_thickness - rectangular_caissons_wall_thickness))) * caisson_breakwater_length * rectangular_caissons_number_of_units #E90 #=((E85*E86)-((E86-2*E88)*(E85-E89-E88)))*E87*E84
+        rectangular_caissons_volume_sand = ((rectangular_caissons_base_width - 2. * rectangular_caissons_wall_thickness) * (rectangular_caissons_height - rectangular_caissons_base_slab_thickness - rectangular_caissons_wall_thickness)) * caisson_breakwater_length * rectangular_caissons_number_of_units #E91 #=((E86-2*E88)*(E85-E89-E88))*E87*E84
+
+        #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
+        # sloped_caissons, concrete filled with sand (10/13)
+        #sloped_caissons_number_of_units = 2. #E73 #moved up above caisson cap
+        sloped_caissons_height = rectangular_caissons_height #=E74 see comment for rectangular_caissons_height
+        #E74 =IF(E$15<25;E$15-E$37-E$60;25-2+2/3*(E$15-25-E$60))
+        #sloped_caissons_height = (25. - 2.) + (2. / 3.) * ((-elev) - 25. - leveling_course_depth) #E74 #=25-2+2/3*(E14-25)
+        #if elev > -25:
+        #    sloped_caissons_height = (-elev) - core_depth - leveling_course_depth #E74 #=E$15-E$37-E$60
+        #sloped_caissons_slope_1h = 6. #E76 #moved up above caisson cap
+        #sloped_caissons_base_width = sloped_caissons_height / sloped_caissons_slope_1h #E75 #=E74/E76 #moved up above caisson cap
+        #E77 caisson_breakwater_length
+        #sloped_caissons_wall_thickness = 0.75 #E78 #=IF(E$15<30;0.5;0.75) #moved up above caisson cap
+        #if elev > -30:
+        #    sloped_caissons_wall_thickness = 0.5 #E78 #=IF(E$15<30;0.5;0.75)
+        sloped_caissons_base_slab_thickness = max(1.5,((-elev)/20)) #E79 #=MAX(1.5;E$15/20)
+        sloped_caissons_volume_concrete = ((sloped_caissons_height * sloped_caissons_base_width / 2.) -  (((sloped_caissons_base_width - 2. * sloped_caissons_wall_thickness) * (sloped_caissons_height - sloped_caissons_base_slab_thickness - sloped_caissons_wall_thickness)) / 2.)) * caisson_breakwater_length * sloped_caissons_number_of_units #E80
+        #=((E74*E75/2)-((E75-2*E78)*(E74-E79-E78))/2)*E77*E73
+        sloped_caissons_volume_sand = ((sloped_caissons_base_width - (2. * sloped_caissons_wall_thickness)) * (sloped_caissons_height - sloped_caissons_base_slab_thickness - sloped_caissons_wall_thickness) / 2.) * caisson_breakwater_length * sloped_caissons_number_of_units #E81 #=(E75-2*E78)*(E74-E79-E78)/2*E77*E73
+
+        # primary_armor_berm, large riprap (10/13)
+        primary_armor_berm_depth = 2. #E50
+        primary_armor_berm_width_toe = 3. #E51
+        primary_armor_berm_slope_1v = 2. #E52
+        primary_armor_berm_width_top = 3. #E53
+        primary_armor_berm_width_sloped =  (core_depth - (primary_armor_berm_depth * 2.)) * primary_armor_berm_slope_1v #E54  #=(E37-E50*2)*E52
+        primary_armor_berm_width_total = primary_armor_berm_width_sloped + primary_armor_berm_width_toe + primary_armor_berm_width_top #E55  #=E54+E51+E53
+        #E56 caisson_breakwater_length
+        primary_armor_berm_volume = primary_armor_berm_depth * primary_armor_berm_width_total * caisson_breakwater_length #E57 #=E50*E55*E56
+
+        # scour_blanket_toe_berm, small riprap (10/13)
+        scour_blanket_toe_berm_depth = 1. #E43
+        scour_blanket_toe_berm_width_exposed = 5. #E44
+        scour_blanket_toe_berm_width_total = scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_total #E4  #=E44+E55
+        #E46 caisson_breakwater_length
+        scour_blanket_toe_berm_volume = scour_blanket_toe_berm_depth * scour_blanket_toe_berm_width_total * caisson_breakwater_length #E47 #=E43*E45*E46
+
+        # core, quarry run stone, part 2 (part 1 above at beginning) (10/13)
+        core_width =  primary_armor_berm_width_sloped + primary_armor_berm_width_top + (primary_mass_number_of_units * primary_mass_width) + (sloped_caissons_base_width * sloped_caissons_number_of_units) + (rectangular_caissons_number_of_units * rectangular_caissons_base_width) + (leeside_mass_number_of_units * leeside_mass_height) + leeside_armor_berm_width_top + leeside_armor_berm_width_sloped #E38
+        #=E54+E53+E66*E68+E75*E73+E84*E86+E116*E117+E126+E127
+        #E39 caisson_breakwater_length
+        core_volume = core_depth * core_width * caisson_breakwater_length  #E40 #=E37*E38*E39
+
+        # dredge_and_replace (10/13)
+        dredge_and_replace_depth = 1. #E31
+        dredge_and_replace_width = leeside_armor_berm_width_toe + core_width + scour_blanket_toe_berm_width_exposed + primary_armor_berm_width_toe #E32 #=E38+E44+E51+E124
+        #E33 caisson_breakwater_length #E14
+        dredge_and_replace_volume = dredge_and_replace_depth * dredge_and_replace_width * caisson_breakwater_length #E34 #=E31*E32*E33
+
+
+
+        # Rubble Breakwater (Mound), parameters
+        #Moved up to resolve conflicts
+        #filter_toe_berm_gravel_seaside_depth #E153 #if (IF(E$13<8;1;2)
+        if ( rubble_breakwater_height < 8.0 ) :
+            filter_toe_berm_gravel_seaside_depth = 1.0
+        else :
+            filter_toe_berm_gravel_seaside_depth = 2.0
+        #secondary_armor_toe_small_riprap_seaside_depth #E167 #if (IF(E$13<8;1.5;2)
+        if ( rubble_breakwater_height < 8.0 ) :
+            secondary_armor_toe_small_riprap_seaside_depth = 1.5
+        else :
+            secondary_armor_toe_small_riprap_seaside_depth = 2.0
+        granular_filter_gravel_depth = 1.5  #E160 #=0.5
+        #secondary_armor_small_riprap_depth #E174 #if (IF(E$13<8;1;1.5)
+        if ( rubble_breakwater_height < 8.0 ) :
+            secondary_armor_small_riprap_depth = 1.0
+        else :
+            secondary_armor_small_riprap_depth = 1.5
+        primary_armor_large_riprap_depth = 2.0  #E180 #=2
+        primary_armor_large_riprap_width_crest = 8.0  #E181 #=8
+        secondary_armor_toe_small_riprap_seaside_width_exposed = 3.0  #E168 #=3
+
+        freeboard = 0.6  #E133 #=0.6
+        #CONFLICTS minimum_height => filter_toe_berm_gravel_seaside_depth, secondary_armor_toe_small_riprap_seaside_depth, granular_filter_gravel_depth, secondary_armor_small_riprap_depth, primary_armor_large_riprap_depth,
+        minimum_height = filter_toe_berm_gravel_seaside_depth + secondary_armor_toe_small_riprap_seaside_depth + granular_filter_gravel_depth + secondary_armor_small_riprap_depth + primary_armor_large_riprap_depth + freeboard  #E134 #=SUM(E153;E167;E160;E174;E180;E133)
+        design_height = max( rubble_breakwater_height , minimum_height )  #E135 #=MAX(E13;E134)
+        seaside_slope = 1.5  #E136 #=1.5
+        leeside_slope = 1.5  #E137 #=1.5
+
+        #Moved up to resolve conflicts
+        core_quarry_run_stone_width_top = primary_armor_large_riprap_width_crest  #E148 #=E181
+        core_quarry_run_stone_height = design_height - granular_filter_gravel_depth - secondary_armor_small_riprap_depth - primary_armor_large_riprap_depth  #E146 #=E135-E160-E174-E180
+        core_quarry_run_stone_width_base = ( 2.0 * core_quarry_run_stone_height * seaside_slope ) + core_quarry_run_stone_width_top  #E147 #=2*E146*E136+E148
+        granular_filter_gravel_height = core_quarry_run_stone_height + granular_filter_gravel_depth  #E161 #=E146+E160
+        granular_filter_gravel_total_cross_sectional_length = granular_filter_gravel_height * seaside_slope * 2.0 + core_quarry_run_stone_width_top  #E162 #=E161*E136*2+E148
+
+        #dredge_and_replace_with_quarry_run_stone
+        dredge_and_replace_with_quarry_run_stone_depth = 1.0  #E140 #=1
+        #CONFLICTS dredge_and_replace_with_quarry_run_stone_width => core_quarry_run_stone_width_base, granular_filter_gravel_total_cross_sectional_length
+        dredge_and_replace_with_quarry_run_stone_width = core_quarry_run_stone_width_base + ( 2.0 * granular_filter_gravel_total_cross_sectional_length )  #E141 #=E147+2*E162
+        dredge_and_replace_with_quarry_run_stone_length = rubble_breakwater_length  #E142 #=E$12
+        dredge_and_replace_with_quarry_run_stone_volume = dredge_and_replace_with_quarry_run_stone_depth * dredge_and_replace_with_quarry_run_stone_width * dredge_and_replace_with_quarry_run_stone_length  #E143 #=E140*E141*E142
+
+        #core_quarry_run_stone
+        core_quarry_run_stone_length = rubble_breakwater_length  #E149 #=E$12
+        core_quarry_run_stone_volume = 0.5 * core_quarry_run_stone_height * ( core_quarry_run_stone_width_base + core_quarry_run_stone_width_top ) * core_quarry_run_stone_length  #E150 #=0.5*E146*(E147+E148)*E149
+
+        #filter_toe_berm_gravel_seaside
+        filter_toe_berm_gravel_seaside_width_exposed = 1.5  #E154 #=1.5
+        #CONFLICTS filter_toe_berm_gravel_seaside_width_total => secondary_armor_toe_small_riprap_seaside_width_exposed, primary_armor_large_riprap_depth, secondary_armor_small_riprap_depth
+        filter_toe_berm_gravel_seaside_width_total = filter_toe_berm_gravel_seaside_width_exposed + secondary_armor_toe_small_riprap_seaside_width_exposed + primary_armor_large_riprap_depth + secondary_armor_small_riprap_depth  #E155 #=E154+E168+E180+E174
+        filter_toe_berm_gravel_seaside_length = rubble_breakwater_length  #E156 #=E$12
+        filter_toe_berm_gravel_seaside_volume = filter_toe_berm_gravel_seaside_depth * filter_toe_berm_gravel_seaside_width_total * filter_toe_berm_gravel_seaside_length  #E157 #=E153*E155*E156
+
+        #granular_filter_gravel
+        granular_filter_gravel_length = rubble_breakwater_length  #E163 #=E$12
+        granular_filter_gravel_volume = granular_filter_gravel_length * granular_filter_gravel_height + granular_filter_gravel_depth * granular_filter_gravel_total_cross_sectional_length  #E164 #=E163*E161+E160*E162
+
+        #secondary_armor_toe_small_riprap_seaside
+        secondary_armor_toe_small_riprap_seaside_width_total = secondary_armor_toe_small_riprap_seaside_width_exposed + ( 2.0 * secondary_armor_toe_small_riprap_seaside_depth * seaside_slope )  #E169 #=E168+2*E167*E136
+        secondary_armor_toe_small_riprap_seaside_length = rubble_breakwater_length  #E170 #=E$12
+        secondary_armor_toe_small_riprap_seaside_volume = secondary_armor_toe_small_riprap_seaside_length * secondary_armor_toe_small_riprap_seaside_depth * ( secondary_armor_toe_small_riprap_seaside_width_exposed + secondary_armor_toe_small_riprap_seaside_width_total ) / 2.0  #E171 #=E170*E167*(E168+E169)/2
+
+        #secondary_armor_small_riprap
+        secondary_armor_small_riprap_width = core_quarry_run_stone_width_top + ( secondary_armor_toe_small_riprap_seaside_depth + design_height - minimum_height + granular_filter_gravel_depth ) * seaside_slope  #E175 #=E148+(E167+E135-E134+E160)*E136
+        secondary_armor_small_riprap_length = rubble_breakwater_length  #E176 #=E$12
+        secondary_armor_small_riprap_volume = secondary_armor_small_riprap_depth * secondary_armor_small_riprap_width * secondary_armor_small_riprap_length  #E177 #=E174*E175*E176
+
+        #primary_armor_large_riprap
+        primary_armor_large_riprap_height_seaside = rubble_breakwater_height - filter_toe_berm_gravel_seaside_depth  #E182 #=E13-E153
+        primary_armor_large_riprap_height_leeside = min( 3.0 * ( primary_armor_large_riprap_depth + secondary_armor_small_riprap_depth + granular_filter_gravel_depth ), primary_armor_large_riprap_height_seaside )  #E183 #=MIN(3*(E180+E174+E160);E182)
+        primary_armor_large_riprap_length = rubble_breakwater_length  #E184 #=E$12
+        primary_armor_large_riprap_volume = primary_armor_large_riprap_length * ( primary_armor_large_riprap_depth * primary_armor_large_riprap_width_crest + primary_armor_large_riprap_depth * sqrt( primary_armor_large_riprap_height_seaside ^ 2.0 + ( primary_armor_large_riprap_height_seaside * seaside_slope )^2.0)+ primary_armor_large_riprap_depth * sqrt( primary_armor_large_riprap_height_leeside ^2.0 + ( primary_armor_large_riprap_height_leeside * leeside_slope ) ^ 2.0))  #E185 #=E184*(E180*E181+E180*SQRT(E182^2+(E182*E136)^2)+E180*SQRT(E183^2+(E183*E137)^2))
+
+        #secondary_armor_toe_small_riprap_leeside
+        if ( rubble_breakwater_height < 8.0 ) :
+            secondary_armor_toe_small_riprap_leeside_depth = 1.5
+        else :
+            secondary_armor_toe_small_riprap_leeside_depth = 2.0  #E188 #if (IF(E$13<8;1.5;2)
+        secondary_armor_toe_small_riprap_leeside_width_exposed = 3.0  #E189 #=3
+        secondary_armor_toe_small_riprap_leeside_width_total = secondary_armor_toe_small_riprap_leeside_width_exposed + 2.0 * secondary_armor_toe_small_riprap_leeside_depth * leeside_slope  #E190 #=E189+2*E188*E137
+        secondary_armor_toe_small_riprap_leeside_length = rubble_breakwater_length  #E191 #=E$12
+        secondary_armor_toe_small_riprap_leeside_volume = secondary_armor_toe_small_riprap_leeside_length * secondary_armor_toe_small_riprap_leeside_depth * ( secondary_armor_toe_small_riprap_leeside_width_exposed + secondary_armor_toe_small_riprap_leeside_width_total ) / 2.0  #E192 #=E191*E188*(E189+E190)/2
+
+        #filter_toe_berm_gravel_leeside
+        if ( rubble_breakwater_height < 8.0 ) :
+            filter_toe_berm_gravel_leeside_depth = 1.0
+        else :
+            filter_toe_berm_gravel_leeside_depth = 2.0  #E195 #if (IF(E$13<8;1;2)
+        filter_toe_berm_gravel_leeside_width_exposed = 1.5  #E196 #=1.5
+        filter_toe_berm_gravel_leeside_width_total = filter_toe_berm_gravel_leeside_width_exposed + secondary_armor_toe_small_riprap_leeside_width_exposed * ( 1.0 + secondary_armor_toe_small_riprap_leeside_width_exposed * leeside_slope ) + secondary_armor_toe_small_riprap_seaside_depth + primary_armor_large_riprap_depth  #E197 #=E196+E189*(1+E189*E137)+E167+E180
+        filter_toe_berm_gravel_leeside_length = rubble_breakwater_length  #E198 #=E$12
+        filter_toe_berm_gravel_leeside_volume = filter_toe_berm_gravel_leeside_depth * filter_toe_berm_gravel_leeside_width_exposed * filter_toe_berm_gravel_leeside_length  #E199 #=E195*E196*E198
+
+
+
+        # Flood Wall, parameters
+        #Moved up to resolve conflicts
+        wall_stem_height = caisson_floodwall_height  #E248 #=E11
+        base_slab_width = wall_stem_height  #E225 #=E248
+        stabilization_slab_height = 0.5  #E215 #=0.5
+
+        freeboard = 0.9  #E203 #=0.9
+        minimum_wall_stem_height = 2.0  #E204 #=2
+        maximum_wall_stem_height = 10.0  #E205 #=10
+        #design_wall_stem_height #E206 #=IF(E11>E204;IF(E11<E205;E11;E205);E204)
+        if ( caisson_floodwall_height < minimum_wall_stem_height ) :
+            if ( caisson_floodwall_height < maximum_wall_stem_height ) :
+                design_wall_stem_height = caisson_floodwall_height
+            else :
+                design_wall_stem_height = maximum_wall_stem_height
+        else :
+            design_wall_stem_height = minimum_wall_stem_height
+
+        #excavate_and_replace_with_compacted_gravel
+        excavate_and_replace_with_compacted_gravel_depth = 1.0  #E209 #=1
+        #CONFLICTS excavate_and_replace_with_compacted_gravel_width => base_slab_width, stabilization_slab_height
+        excavate_and_replace_with_compacted_gravel_width = base_slab_width + 2.0 * stabilization_slab_height  #E210 #=E225+2*E215
+        excavate_and_replace_with_compacted_gravel_length = caisson_floodwall_length  #E211 #=E$10
+        excavate_and_replace_with_compacted_gravel_volume_of_gravel = excavate_and_replace_with_compacted_gravel_depth * excavate_and_replace_with_compacted_gravel_width * excavate_and_replace_with_compacted_gravel_length  #E212 #=E209*E210*E211
+
+        #stabilization_slab
+        stabilization_slab_width = base_slab_width + 2.0  #E216 #=E225+2
+        stabilization_slab_length = caisson_floodwall_length  #E217 #=E$10
+        stabilization_slab_volume_of_concrete = stabilization_slab_height * stabilization_slab_width * stabilization_slab_length  #E218 #=E215*E216*E217
+        stabilization_slab_concrete_to_rebar_volumetric_ratio = 1.0  #E219 #=1
+        stabilization_slab_volume_of_reinforcing_steel = stabilization_slab_concrete_to_rebar_volumetric_ratio / 100 * stabilization_slab_volume_of_concrete  #E220 #=E219/100*E218
+        stabilization_slab_mass_of_reinforcing_steel = stabilization_slab_volume_of_reinforcing_steel * density_of_steel  #E221 #=E220*$LUTs.D$3
+
+        #base_slab
+        if ( design_wall_stem_height < 4.0 ) :
+            base_slab_depth = 1.0
+        else :
+            base_slab_depth = 1.5  #E224 #if (IF(E206<4;1;1.5)
+        base_slab_heel_width = base_slab_width / 4.0 * 3.0  #E226 #=E225/4*3
+        base_slab_toe_width = base_slab_width / 4.0  #E227 #=E225/4
+        base_slab_length = caisson_floodwall_length  #E228 #=E$10
+        base_slab_volume_of_concrete = base_slab_depth * base_slab_width * base_slab_length  #E229 #=E224*E225*E228
+        base_slab_concrete_to_rebar_volumetric_ratio = 2.0  #E230 #=2
+        base_slab_volume_of_reinforcing_steel = base_slab_concrete_to_rebar_volumetric_ratio / 100.0 * base_slab_volume_of_concrete  #E231 #=E230/100*E229
+        base_slab_mass_of_reinforcing_steel = base_slab_volume_of_reinforcing_steel * density_of_steel  #E232 #=E231*$LUTs.D$3
+        base_slab_seepage_cutoff_sheet_pile_wall_depth = min( 2.0 * design_wall_stem_height , 31.0 )  #E233 #=MIN(2*E206;31)
+        base_slab_volume_of_sheet_pile_steel = 0.000165 * base_slab_length * base_slab_seepage_cutoff_sheet_pile_wall_depth  #E234 #=0.000165*E228*E233
+        base_slab_mass_of_sheet_pile_steel = base_slab_volume_of_sheet_pile_steel * density_of_steel  #E235 #=E234*$LUTs.D$3
+
+        #h_pile_supports
+        h_pile_supports_depth_below_ground_surface = design_wall_stem_height * 5.0  #E238 #=5*E206
+        h_pile_supports_slope = 3.0  #E239 #=3
+        h_pile_supports_length = sqrt(  h_pile_supports_depth_below_ground_surface ^ 2.0 + ( h_pile_supports_depth_below_ground_surface / h_pile_supports_slope )^2.0)  #E240 #=SQRT(E238^2+(E238/E239)^2)
+
+        #h_pile_supports_size #E241 #=IF(E206<4;"10x57";IF(E206>7;"14x102";"12x74"))
+        if ( design_wall_stem_height < 4.0 ) :
+            h_pile_supports_size = "10x57"
+        elif ( design_wall_stem_height > 7.0 ) :
+            h_pile_supports_size = "14x102"
+        else :
+            h_pile_supports_size = "12x74"
+
+        h_pile_supports_spacing = 3.0  #E242 #=3
+        #h_pile_supports_no_of_piles_at_each_spacing_interval #E243 #if (IF(E225>5;3;2)
+        if ( base_slab_width > 5.0 ) :
+            h_pile_supports_no_of_piles_at_each_spacing_interval = 3.0
+        else :
+            h_pile_supports_no_of_piles_at_each_spacing_interval = 2.0
+
+        if ( h_pile_supports_size == "10x57" ) :
+            h_pile_supports_volume_of_steel = 16.8
+        elif ( h_pile_supports_size == "14x117" ) :
+            h_pile_supports_volume_of_steel = 30.0
+        else :
+            h_pile_supports_volume_of_steel = 21.8
+        h_pile_supports_volume_of_steel = h_pile_supports_volume_of_steel * 0.00064516 * h_pile_supports_length * caisson_floodwall_length / h_pile_supports_spacing * h_pile_supports_no_of_piles_at_each_spacing_interval  #E244 #=IF(E241="10x57";16.8;IF(E241="14x117";30;21.8))*0.00064516*E240*E$10/E242*E243
+
+        h_pile_supports_mass_of_reinforcing_steel = h_pile_supports_volume_of_steel * density_of_steel  #E245 #=E244*$LUTs.D$3
+
+        #wall_stem
+        wall_stem_width_stem_top = 2.0  #E249 #=2
+        if ( design_wall_stem_height > 7.0 ) :
+            wall_stem_width_stem_bottom = wall_stem_width_stem_top * 1.5
+        else :
+            wall_stem_width_stem_bottom = wall_stem_width_stem_top  #E250 #if (IF(E206>7;E249*1.5;E249)
+        wall_stem_length = caisson_floodwall_length  #E251 #=E$10
+        wall_stem_volume_of_concrete = ( wall_stem_width_stem_top + wall_stem_width_stem_bottom ) * wall_stem_height * wall_stem_length / 2.0  #E252 #=(E249+E250)*E248*E251/2
+        wall_stem_concrete_to_rebar_volumetric_ratio = 1.5  #E253 #=1.5
+        wall_stem_volume_of_reinforcing_steel = wall_stem_concrete_to_rebar_volumetric_ratio / 100.0 * wall_stem_volume_of_concrete  #E254 #=E253/100*E252
+        wall_stem_mass_of_reinforcing_steel = wall_stem_volume_of_reinforcing_steel * density_of_steel  #E255 #=E254*$LUTs.D$3
+
+
+
+
+        #CONSTRUCTION MATERIALS SUMMARY
+        sand =  sloped_caissons_volume_sand + rectangular_caissons_volume_sand #m³ =SUM(E81;E91)
+        gravel =  leveling_course_volume + filter_toe_berm_gravel_seaside_volume + granular_filter_gravel_total_cross_sectional_length + filter_toe_berm_gravel_leeside_volume + excavate_and_replace_with_compacted_gravel_volume_of_gravel #m³ =SUM(E63;E157;E164;E199;E212)
+        quarry_run_stone =  dredge_and_replace_volume + core_volume + dredge_and_replace_with_quarry_run_stone_volume + core_quarry_run_stone_volume #m³ =SUM(E34;E40;E143;E150)
+        large_riprap =  primary_armor_berm_volume + leeside_armor_berm_volume + primary_armor_large_riprap_volume #m³ =SUM(E57;E130;E185)
+        small_riprap =  scour_blanket_toe_berm_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m³ =SUM(E47;E171;E177;E192)
+        concrete = primary_mass_volume + sloped_caissons_volume_concrete + rectangular_caissons_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume + leeside_mass_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m³ =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
+        structural_steel = ( stabilization_slab_mass_of_reinforcing_steel + base_slab_mass_of_reinforcing_steel + base_slab_mass_of_sheet_pile_steel + h_pile_supports_mass_of_reinforcing_steel + wall_stem_mass_of_reinforcing_steel ) / 1000 #tonv =SUM(E221;E232;E235;E245;E255)/1000
+
+        #### Rubble Mound
+# E14   elev
+
+# new E14 length
+
+
+
+
+    else :
+        print "error, dike model only operates to max depth %s" % (max_depth)
+
+
+
+    # for purposes of the algorithm, the dike volume can proxy for the cost
+    return {   'toeVol': toeVolume,
+               'elev': elev,
+               'length': length,
+               'coreVol' : coreVolume,
+               'dikeVol' : dikeVolume,
+               'foundVol' : foundVolume,
+               'armorVol' : armorVolume,
+               'cost' : dikeVolume + coreVolume + toeVolume + foundVolume + armorVolume
+            }
+
+
+# Nathan Chase's SUPERSLR Design
+# Implemented by Keith Mosher
+def multiDikeSingleBermComboOldSpreadsheet(length, elev, params):
     # Set parameters
     # sea level rise height
     slr = float(params['sea_level_rise'])
@@ -326,7 +805,7 @@ def multiDikeSingleBermCombo(length, elev, params):
     if elev > 0 :
         leeside_armor_berm_depth = 1
         #print "berm"
-    elif elev <=0 and elev > -10 :
+    elif elev <= 0 and elev > -10 :
         leeside_armor_berm_depth = 1
         #print "rubble mound breakwater"
     elif elev <= -10 and elev >= max_depth :
@@ -451,7 +930,7 @@ def multiDikeSingleBermCombo(length, elev, params):
 
 # Nathan Chase's SUPERSLR Design
 # Implemented by Keith Mosher
-def multiDikeSingleBermComboTest(length, elev, max_depth):
+def multiDikeSingleBermComboTestOldSpreadsheet(length, elev, max_depth):
 
     if elev > 0 :
         leeside_armor_berm_depth = 1
