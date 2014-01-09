@@ -348,46 +348,40 @@ def multiDikeSingleBermCombo(length, elev, params):
 
 #NOTE TODO Update elev calculations
 #NOTE elev appears to be the inverse of height, possibly set height values as -elev?  maybe only for rubble breakwater and floodwall
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 2 #E11 #=
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 5 #E11 #=
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 10 #E11 #=
+        cantilever_floodwall_length = 460 #E10 #=
+        cantilever_floodwall_height = 2 #E11 #=
+        cantilever_floodwall_length = 460 #E10 #=
+        cantilever_floodwall_height = 5 #E11 #=
+        cantilever_floodwall_length = 460 #E10 #=
+        cantilever_floodwall_height = 10 #E11 #=
         cantilever_floodwall_length = 0 #E10 #=
         cantilever_floodwall_height = 0 #E11 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 7 #E13 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 11 #E13 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 15 #E13 #=
+        rubble_breakwater_length = 460 #E12 #=
+        rubble_breakwater_height = 7 #E13 #=
+        rubble_breakwater_length = 460 #E12 #=
+        rubble_breakwater_height = 11 #E13 #=
+        rubble_breakwater_length = 460 #E12 #=
+        rubble_breakwater_height = 15 #E13 #=
         rubble_breakwater_length = 0 #E12 #=
         rubble_breakwater_height = 0 #E13 #=
         caisson_breakwater_length = 460 #E14 #=
         caisson_breakwater_height = 15 #E15 #=
         caisson_breakwater_length = 460 #E14 #=
         caisson_breakwater_height = 42 #E15 #=
-        #caisson_breakwater_length = 460 #E14 #=
-        #caisson_breakwater_height = 60 #E15 #=
-        #caisson_breakwater_length = 0 #E14 #=
-        #caisson_breakwater_height = 0 #E15 #=
-
-        #elev = -cantilever_floodwall_height
-        #elev = -rubble_breakwater_height
-        #elev = -caisson_breakwater_height
-
-
+        caisson_breakwater_length = 460 #E14 #=
+        caisson_breakwater_height = 60 #E15 #=
+        caisson_breakwater_length = 0 #E14 #=
+        caisson_breakwater_height = 0 #E15 #=
 
         #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
         # TODO find and code freeboard
 
         # Caisson Breakwater Parameters
         #moved up to avoid ordering conflicts
-        if ( caisson_breakwater_length < 25.0) :
+        if ( caisson_breakwater_height < 25.0) :
             core_quarry_run_stone_depth  = 2.0
         else :
-             core_quarry_run_stone_depth  = 2.0 + (( caisson_breakwater_length - 25.0) / 3.0)  #E37 #if ('=IF(E15<25,2,2+(E15-25)/3)
+             core_quarry_run_stone_depth  = 2.0 + (( caisson_breakwater_height - 25.0) / 3.0)  #E37 #if ('=IF(E15<25,2,2+(E15-25)/3)
         scour_blanket_toe_berm_small_riprap_width_exposed = 5.0  #E44 #=5
         primary_armor_berm_large_riprap_width_toe = 3.0  #E51 #=3
         primary_armor_berm_large_riprap_depth = 2.0  #E50 #=2
@@ -397,91 +391,92 @@ def multiDikeSingleBermCombo(length, elev, params):
         primary_mass_concrete_block_number_of_units = 2.0  #E66 #=2
         sloped_caissons_concrete_filled_with_sand_number_of_units = 2.0  #E73 #=2
         sloped_caissons_concrete_filled_with_sand_slope = 6.0  #E76 #=6
+        if ( caisson_breakwater_height < 30.0) :
+            sloped_caissons_concrete_filled_with_sand_wall_thickness  = 0.5
+        else :
+            sloped_caissons_concrete_filled_with_sand_wall_thickness  = 0.75  #E78 #if ('=IF(E$15<30,0.5,0.75)
         rectangular_caissons_concrete_filled_with_sand_number_of_units = 2.0  #E84 #=2
         rectangular_caissons_concrete_filled_with_sand_base_width = 5.0  #E86 #=5
+        caisson_cap_width = rectangular_caissons_concrete_filled_with_sand_number_of_units * rectangular_caissons_concrete_filled_with_sand_base_width + (2.0 * sloped_caissons_concrete_filled_with_sand_wall_thickness )  #E105 #='=E84*E86+2*E78
         leeside_mass_concrete_block_number_of_units = 1.0  #E116 #=1
-        leeside_mass_concrete_block_height = max(1.5, ( caisson_breakwater_length / 20.0))  #E117 #='=MAX(1.5,E$15/20)
+        leeside_mass_concrete_block_height = max(1.5, ( caisson_breakwater_height / 20.0))  #E117 #='=MAX(1.5,E$15/20)
+        leeside_mass_concrete_block_width = max(1.5, ( caisson_breakwater_height / 20.0))  #E118 #='=MAX(1.5,E$15/20)
         leeside_armor_berm_large_riprap_width_toe = 3.0  #E124 #=3
         leeside_armor_berm_large_riprap_depth = 2.0  #E123 #=2
         leeside_armor_berm_large_riprap_slope_1v = 2.0  #E125 #=2
+        leeside_armor_berm_large_riprap_width_top = 3.0  #E126 #=3
         leeside_armor_berm_large_riprap_width_sloped = ( core_quarry_run_stone_depth - (2.0 * leeside_armor_berm_large_riprap_depth )) * leeside_armor_berm_large_riprap_slope_1v  #E127 #='=(E37-E123*2)*E125
 
         primary_armor_berm_large_riprap_width_sloped = ( core_quarry_run_stone_depth - ( primary_armor_berm_large_riprap_depth * 2.0 )) * primary_armor_berm_large_riprap_slope  #E54 #='=(E37-E50*2)*E52
-        primary_mass_concrete_block_width = max(1.5, ( caisson_breakwater_length / 20.0))  #E68 #='=MAX(1.5,E$15/20)
-        if ( caisson_breakwater_length < 25.0) :
-            sloped_caissons_concrete_filled_with_sand_height = caisson_breakwater_length - core_quarry_run_stone_depth - leveling_course_gravel_depth
+        primary_mass_concrete_block_width = max(1.5, ( caisson_breakwater_height / 20.0))  #E68 #='=MAX(1.5,E$15/20)
+        primary_armor_berm_large_riprap_width_total = primary_armor_berm_large_riprap_width_sloped + primary_armor_berm_large_riprap_width_toe + primary_armor_berm_large_riprap_width_top  #E55 #='=E54+E51+E53
+
+        if ( caisson_breakwater_height < 25.0) :
+            sloped_caissons_concrete_filled_with_sand_height = caisson_breakwater_height - core_quarry_run_stone_depth - leveling_course_gravel_depth
         else :
-             sloped_caissons_concrete_filled_with_sand_height  = 25.0 – 2.0 + (2.0 / 3.0 * ( caisson_breakwater_length - 25.0 - leveling_course_gravel_depth ))  #E74 #if ('=IF(E$15<25,E$15-E$37-E$60,25-2+2/3*(E$15-25-E$60))
+            sloped_caissons_concrete_filled_with_sand_height  = 25.0 - 2.0 + (2.0 / 3.0 * ( caisson_breakwater_height - 25.0 - leveling_course_gravel_depth ))  #E74 #if ('=IF(E$15<25,E$15-E$37-E$60,25-2+2/3*(E$15-25-E$60))
         sloped_caissons_concrete_filled_with_sand_base_width = sloped_caissons_concrete_filled_with_sand_height / sloped_caissons_concrete_filled_with_sand_slope  #E75 #='=E74/E76
-        core_quarry_run_stone_width = primary_armor_berm_large_riprap_width_sloped + primary_armor_berm_large_riprap_width_top + ( primary_mass_concrete_block_number_of_units * primary_mass_concrete_block_width ) + ( sloped_caissons_concrete_filled_with_sand_base_width * sloped_caissons_concrete_filled_with_sand_number_of_units ) + ( rectangular_caissons_concrete_filled_with_sand_number_of_units * rectangular_caissons_concrete_filled_with_sand_base_width ) + ( leeside_mass_concrete_block_number_of_units * leeside_mass_concrete_block_height ) + leeside_armor_berm_large_riprap_width_sloped  #E38 #='=E54+E53+E66*E68+E75*E73+E84*E86+E116*E117+E126+E127
+        core_quarry_run_stone_width = primary_armor_berm_large_riprap_width_sloped + primary_armor_berm_large_riprap_width_top + ( primary_mass_concrete_block_number_of_units * primary_mass_concrete_block_width ) + ( sloped_caissons_concrete_filled_with_sand_base_width * sloped_caissons_concrete_filled_with_sand_number_of_units ) + ( rectangular_caissons_concrete_filled_with_sand_number_of_units * rectangular_caissons_concrete_filled_with_sand_base_width ) + ( leeside_mass_concrete_block_number_of_units * leeside_mass_concrete_block_height ) + leeside_armor_berm_large_riprap_width_top + leeside_armor_berm_large_riprap_width_sloped  #E38 #='=E54+E53+E66*E68+E75*E73+E84*E86+E116*E117+E126+E127
 
         freeboard = 0.6  #E28 #=0.6
 
         # dredge_and_replace_with_quarry_run_stone
         dredge_and_replace_with_quarry_run_stone_depth = 1.0  #E31 #=1
 
-        #CONFLICTS dredge_and_replace_with_quarry_run_stone_width => core_quarry_run_stone_width, scour_blanket_toe_berm_small_riprap_width_exposed, primary_armor_berm_large_riprap_width_toe, leeside_armor_berm_large_riprap_width_toe, ,
         dredge_and_replace_with_quarry_run_stone_width = core_quarry_run_stone_width + scour_blanket_toe_berm_small_riprap_width_exposed + primary_armor_berm_large_riprap_width_toe + leeside_armor_berm_large_riprap_width_toe  #E32 #='=E38+E44+E51+E124
-        dredge_and_replace_with_quarry_run_stone_length = caisson_breakwater_height  #E33 #='=E$14
-        dredge_and_replace_with_quarry_run_stone_volume = dredge_and_replace_with_quarry_run_stone_depth * dredge_and_replace_with_quarry_run_stone_width * dredge_and_replace_with_quarry_run_stone_length  #E34 #='=E31*E32*E33
+        dredge_and_replace_with_quarry_run_stone_length = caisson_breakwater_length  #E33 #='=E$14
+        dredge_and_replace_with_quarry_run_stone_volume_caisson = dredge_and_replace_with_quarry_run_stone_depth * dredge_and_replace_with_quarry_run_stone_width * dredge_and_replace_with_quarry_run_stone_length  #E34 #='=E31*E32*E33
 
         # core_quarry_run_stone
-        core_quarry_run_stone_length = caisson_breakwater_height  #E39 #='=E$14
-        core_quarry_run_stone_volume = core_quarry_run_stone_depth * core_quarry_run_stone_width * core_quarry_run_stone_length  #E40 #='=E37*E38*E39
+        core_quarry_run_stone_length = caisson_breakwater_length  #E39 #='=E$14
+        core_quarry_run_stone_volume_caisson = core_quarry_run_stone_depth * core_quarry_run_stone_width * core_quarry_run_stone_length  #E40 #='=E37*E38*E39
 
         # scour_blanket_toe_berm_small_riprap
         scour_blanket_toe_berm_small_riprap_depth = 1.0  #E43 #=1
         scour_blanket_toe_berm_small_riprap_width_total = scour_blanket_toe_berm_small_riprap_width_exposed + primary_armor_berm_large_riprap_width_total  #E45 #='=E44+E55
-        scour_blanket_toe_berm_small_riprap_length = caisson_breakwater_height  #E46 #='=E$14
+        scour_blanket_toe_berm_small_riprap_length = caisson_breakwater_length  #E46 #='=E$14
         scour_blanket_toe_berm_small_riprap_volume = scour_blanket_toe_berm_small_riprap_depth * scour_blanket_toe_berm_small_riprap_width_total * scour_blanket_toe_berm_small_riprap_length  #E47 #='=E43*E45*E46
 
         # primary_armor_berm_large_riprap
-        primary_armor_berm_large_riprap_width_total = primary_armor_berm_large_riprap_width_sloped + primary_armor_berm_large_riprap_width_toe + primary_armor_berm_large_riprap_width_top  #E55 #='=E54+E51+E53
-        primary_armor_berm_large_riprap_length = caisson_breakwater_height  #E56 #='=E$14
+        primary_armor_berm_large_riprap_length = caisson_breakwater_length  #E56 #='=E$14
         primary_armor_berm_large_riprap_volume = primary_armor_berm_large_riprap_depth * primary_armor_berm_large_riprap_width_total * primary_armor_berm_large_riprap_length  #E57 #='=E50*E55*E56
 
         # leveling_course_gravel
         leveling_course_gravel_width_total = ( primary_mass_concrete_block_number_of_units * primary_mass_concrete_block_width ) + caisson_cap_width + ( leeside_mass_concrete_block_number_of_units * leeside_mass_concrete_block_width )  #E61 #='=E66*E68+E105+E116*E118
-        leveling_course_gravel_length = caisson_breakwater_height  #E62 #='=E$14
+        leveling_course_gravel_length = caisson_breakwater_length  #E62 #='=E$14
         leveling_course_gravel_volume = leveling_course_gravel_depth * leveling_course_gravel_width_total * leveling_course_gravel_length  #E63 #='=E60*E61*E62
 
         # dredge_and_replace_with_quarry_run_stone
-        primary_mass_concrete_block_height = max(1.5, ( caisson_breakwater_length / 20.0))  #E67 #='=MAX(1.5,E$15/20)
-        primary_mass_concrete_block_length = caisson_breakwater_height  #E69 #='=E$14
+        primary_mass_concrete_block_height = max(1.5, ( caisson_breakwater_height / 20.0))  #E67 #='=MAX(1.5,E$15/20)
+        primary_mass_concrete_block_length = caisson_breakwater_length  #E69 #='=E$14
         primary_mass_concrete_block_volume = primary_mass_concrete_block_number_of_units * primary_mass_concrete_block_height * primary_mass_concrete_block_width * primary_mass_concrete_block_length  #E70 #='=E66*E67*E68*E69
 
         # sloped_caissons_concrete_filled_with_sand
-        sloped_caissons_concrete_filled_with_sand_length = caisson_breakwater_height  #E77 #='=E$14
-        if ( caisson_breakwater_length < 30.0) :
-            sloped_caissons_concrete_filled_with_sand_wall_thickness  = 0.5
-        else :
-            sloped_caissons_concrete_filled_with_sand_wall_thickness  = 0.75  #E78 #if ('=IF(E$15<30,0.5,0.75)
-        sloped_caissons_concrete_filled_with_sand_base_slab_thickness = max(1.5, ( caisson_breakwater_length / 20.0))  #E79 #='=MAX(1.5,E$15/20)
+        sloped_caissons_concrete_filled_with_sand_length = caisson_breakwater_length  #E77 #='=E$14
+        sloped_caissons_concrete_filled_with_sand_base_slab_thickness = max(1.5, ( caisson_breakwater_height / 20.0))  #E79 #='=MAX(1.5,E$15/20)
         sloped_caissons_concrete_filled_with_sand_volume_concrete = (( sloped_caissons_concrete_filled_with_sand_height * ( sloped_caissons_concrete_filled_with_sand_base_width / 2.0)) - (( sloped_caissons_concrete_filled_with_sand_base_width - (2.0 * sloped_caissons_concrete_filled_with_sand_wall_thickness )) * ( sloped_caissons_concrete_filled_with_sand_height - sloped_caissons_concrete_filled_with_sand_base_slab_thickness - sloped_caissons_concrete_filled_with_sand_wall_thickness )) / 2.0 ) * sloped_caissons_concrete_filled_with_sand_length * sloped_caissons_concrete_filled_with_sand_number_of_units  #E80 #='=((E74*E75/2)-((E75-2*E78)*(E74-E79-E78))/2)*E77*E73
 
         sloped_caissons_concrete_filled_with_sand_volume_sand = ( sloped_caissons_concrete_filled_with_sand_base_width - (2.0 * sloped_caissons_concrete_filled_with_sand_wall_thickness )) * (( sloped_caissons_concrete_filled_with_sand_height - sloped_caissons_concrete_filled_with_sand_base_slab_thickness - sloped_caissons_concrete_filled_with_sand_wall_thickness ) / 2.0) * sloped_caissons_concrete_filled_with_sand_length * sloped_caissons_concrete_filled_with_sand_number_of_units  #E81 #='=(E75-2*E78)*(E74-E79-E78)/2*E77*E73
 
-
         # rectangular_caissons_concrete_filled_with_sand
         rectangular_caissons_concrete_filled_with_sand_height = sloped_caissons_concrete_filled_with_sand_height  #E85 #='=E74
-        rectangular_caissons_concrete_filled_with_sand_length = caisson_breakwater_height  #E87 #='=E$14
-        if ( caisson_breakwater_length < 30.0) :
+        rectangular_caissons_concrete_filled_with_sand_length = caisson_breakwater_length  #E87 #='=E$14
+        if ( caisson_breakwater_height < 30.0) :
             rectangular_caissons_concrete_filled_with_sand_wall_thickness  = 0.5
         else :
             rectangular_caissons_concrete_filled_with_sand_wall_thickness  = 0.75  #E88 #if ('=IF(E$15<30,0.5,0.75)
-        rectangular_caissons_concrete_filled_with_sand_base_slab_thickness = max(1.5, ( caisson_breakwater_length / 20.0))  #E89 #='=MAX(1.5,E$15/20)
+        rectangular_caissons_concrete_filled_with_sand_base_slab_thickness = max(1.5, ( caisson_breakwater_height / 20.0))  #E89 #='=MAX(1.5,E$15/20)
         rectangular_caissons_concrete_filled_with_sand_volume_concrete = (( rectangular_caissons_concrete_filled_with_sand_height * rectangular_caissons_concrete_filled_with_sand_base_width ) - (( rectangular_caissons_concrete_filled_with_sand_base_width - (2.0 * rectangular_caissons_concrete_filled_with_sand_wall_thickness )) * ( rectangular_caissons_concrete_filled_with_sand_height - rectangular_caissons_concrete_filled_with_sand_base_slab_thickness - rectangular_caissons_concrete_filled_with_sand_wall_thickness ))) *  rectangular_caissons_concrete_filled_with_sand_length * rectangular_caissons_concrete_filled_with_sand_number_of_units  #E90 #='=((E85*E86)-((E86-2*E88)*(E85-E89-E88)))*E87*E84
 
         rectangular_caissons_concrete_filled_with_sand_volume_sand = (( rectangular_caissons_concrete_filled_with_sand_base_width - (2.0 * rectangular_caissons_concrete_filled_with_sand_wall_thickness )) * ( rectangular_caissons_concrete_filled_with_sand_height - rectangular_caissons_concrete_filled_with_sand_base_slab_thickness - rectangular_caissons_concrete_filled_with_sand_wall_thickness )) * rectangular_caissons_concrete_filled_with_sand_length * rectangular_caissons_concrete_filled_with_sand_number_of_units  #E91 #='=((E86-2*E88)*(E85-E89-E88))*E87*E84
 
-
         # intermediate_caisson_walls
         intermediate_caisson_walls_spacing_interval = 6.0  #E95 #=6
-        intermediate_caisson_walls_number_of_units = caisson_breakwater_height / intermediate_caisson_walls_spacing_interval  #E96 #='=E$14/E95
+        intermediate_caisson_walls_number_of_units = caisson_breakwater_length / intermediate_caisson_walls_spacing_interval  #E96 #='=E$14/E95
         intermediate_caisson_walls_height = rectangular_caissons_concrete_filled_with_sand_height  #E97 #='=E85
         intermediate_caisson_walls_base_width = rectangular_caissons_concrete_filled_with_sand_number_of_units * rectangular_caissons_concrete_filled_with_sand_base_width + sloped_caissons_concrete_filled_with_sand_number_of_units * sloped_caissons_concrete_filled_with_sand_base_width  #E98 #='=E84*E86+E73*E75
         intermediate_caisson_walls_top_width = caisson_cap_width  #E99 #='=E105
-        if ( caisson_breakwater_length < 30.0) :
+        if ( caisson_breakwater_height < 30.0) :
             intermediate_caisson_walls_wall_thickness  = 0.5
         else :
             intermediate_caisson_walls_wall_thickness  = 0.75  #E100 #if ('=IF(E$15<30,0.5,0.75)
@@ -489,46 +484,23 @@ def multiDikeSingleBermCombo(length, elev, params):
 
         # caisson_cap
         caisson_cap_height = 2.0  #E104 #=2
-        caisson_cap_width = rectangular_caissons_concrete_filled_with_sand_number_of_units * rectangular_caissons_concrete_filled_with_sand_base_width + (2.0 * sloped_caissons_concrete_filled_with_sand_wall_thickness )  #E105 #='=E84*E86+2*E78
-        caisson_cap_length = caisson_breakwater_height  #E106 #='=E$14
+        caisson_cap_length = caisson_breakwater_length  #E106 #='=E$14
         caisson_cap_volume_concrete = caisson_cap_height * caisson_cap_width * caisson_cap_length  #E107 #='=E104*E105*E106
 
         # caisson_cap_seaside_parapet_wall
         caisson_cap_seaside_parapet_wall_height = freeboard  #E110 #='=E28
         caisson_cap_seaside_parapet_wall_width = caisson_cap_seaside_parapet_wall_height / 2.0  #E111 #='=E110/2
-        caisson_cap_seaside_parapet_wall_length = caisson_breakwater_height  #E112 #='=E$14
+        caisson_cap_seaside_parapet_wall_length = caisson_breakwater_length  #E112 #='=E$14
         caisson_cap_seaside_parapet_wall_volume_concrete = caisson_cap_seaside_parapet_wall_height * caisson_cap_seaside_parapet_wall_width * caisson_cap_seaside_parapet_wall_length  #E113 #='=E110*E111*E112
 
         # leeside_mass_concrete_block
-        leeside_mass_concrete_block_width = max(1.5, ( caisson_breakwater_length / 20.0))  #E118 #='=MAX(1.5,E$15/20)
-        leeside_mass_concrete_block_length = caisson_breakwater_height  #E119 #='=E$14
+        leeside_mass_concrete_block_length = caisson_breakwater_length  #E119 #='=E$14
         leeside_mass_concrete_block_volume = leeside_mass_concrete_block_number_of_units * leeside_mass_concrete_block_height * leeside_mass_concrete_block_width * leeside_mass_concrete_block_length  #E120 #='=E116*E117*E118*E119
 
         # leeside_armor_berm_large_riprap
-        leeside_armor_berm_large_riprap_width_top = 3.0  #E126 #=3
         leeside_armor_berm_large_riprap_width_total = leeside_armor_berm_large_riprap_width_sloped + leeside_armor_berm_large_riprap_width_toe + leeside_armor_berm_large_riprap_width_top  #E128 #='=E127+E124+E126
-        leeside_armor_berm_large_riprap_length = caisson_breakwater_height  #E129 #='=E$14
+        leeside_armor_berm_large_riprap_length = caisson_breakwater_length  #E129 #='=E$14
         leeside_armor_berm_large_riprap_volume = leeside_armor_berm_large_riprap_depth * leeside_armor_berm_large_riprap_width_total * leeside_armor_berm_large_riprap_length  #E130 #='=E123*E128*E129
-
-        print 'primary_mass_number_of_units'
-        print 'primary_mass_width'
-        print 'caisson_cap_width'
-        print 'leeside_mass_number_of_units'
-        print 'leeside_mass_width'
-
-        print primary_mass_number_of_units
-        print primary_mass_width
-        print caisson_cap_width
-        print leeside_mass_number_of_units
-        print leeside_mass_width
-
-        print 'leveling_course_depth'
-        print 'leveling_course_width'
-        print 'caisson_breakwater_length'
-
-        print leveling_course_depth
-        print leveling_course_width
-        print caisson_breakwater_length
 
 
         # Rubble Breakwater (Mound), parameters
@@ -554,7 +526,6 @@ def multiDikeSingleBermCombo(length, elev, params):
         secondary_armor_toe_small_riprap_seaside_width_exposed = 3.0  #E168 #=3
 
         freeboard = 0.6  #E133 #=0.6
-        #CONFLICTS minimum_height => filter_toe_berm_gravel_seaside_depth, secondary_armor_toe_small_riprap_seaside_depth, granular_filter_gravel_depth, secondary_armor_small_riprap_depth, primary_armor_large_riprap_depth,
         minimum_height = filter_toe_berm_gravel_seaside_depth + secondary_armor_toe_small_riprap_seaside_depth + granular_filter_gravel_depth + secondary_armor_small_riprap_depth + primary_armor_large_riprap_depth + freeboard  #E134 #=SUM(E153;E167;E160;E174;E180;E133)
         design_height = max( rubble_breakwater_height , minimum_height )  #E135 #=MAX(E13;E134)
         seaside_slope = 1.5  #E136 #=1.5
@@ -569,7 +540,6 @@ def multiDikeSingleBermCombo(length, elev, params):
 
         #dredge_and_replace_with_quarry_run_stone
         dredge_and_replace_with_quarry_run_stone_depth = 1.0  #E140 #=1
-        #CONFLICTS dredge_and_replace_with_quarry_run_stone_width => core_quarry_run_stone_width_base, granular_filter_gravel_total_cross_sectional_length
         dredge_and_replace_with_quarry_run_stone_width = core_quarry_run_stone_width_base + ( 2.0 * granular_filter_gravel_total_cross_sectional_length )  #E141 #=E147+2*E162
         dredge_and_replace_with_quarry_run_stone_length = rubble_breakwater_length  #E142 #=E$12
         dredge_and_replace_with_quarry_run_stone_volume = dredge_and_replace_with_quarry_run_stone_depth * dredge_and_replace_with_quarry_run_stone_width * dredge_and_replace_with_quarry_run_stone_length  #E143 #=E140*E141*E142
@@ -580,15 +550,13 @@ def multiDikeSingleBermCombo(length, elev, params):
 
         #filter_toe_berm_gravel_seaside
         filter_toe_berm_gravel_seaside_width_exposed = 1.5  #E154 #=1.5
-        #CONFLICTS filter_toe_berm_gravel_seaside_width_total => secondary_armor_toe_small_riprap_seaside_width_exposed, primary_armor_large_riprap_depth, secondary_armor_small_riprap_depth
         filter_toe_berm_gravel_seaside_width_total = filter_toe_berm_gravel_seaside_width_exposed + secondary_armor_toe_small_riprap_seaside_width_exposed + primary_armor_large_riprap_depth + secondary_armor_small_riprap_depth  #E155 #=E154+E168+E180+E174
         filter_toe_berm_gravel_seaside_length = rubble_breakwater_length  #E156 #=E$12
         filter_toe_berm_gravel_seaside_volume = filter_toe_berm_gravel_seaside_depth * filter_toe_berm_gravel_seaside_width_total * filter_toe_berm_gravel_seaside_length  #E157 #=E153*E155*E156
 
         #granular_filter_gravel
         granular_filter_gravel_length = rubble_breakwater_length  #E163 #=E$12
-        granular_filter_gravel_volume = granular_filter_gravel_depth * granular_filter_gravel_total_cross_sectional_length * granular_filter_gravel_length #E164 #=E163*E161+E160*E162 # modified by me to =E160*E162*E163
-        #granular_filter_gravel_volume = granular_filter_gravel_length * granular_filter_gravel_height + granular_filter_gravel_depth * granular_filter_gravel_total_cross_sectional_length  #E164 #=E163*E161+E160*E162 # wrong in spreadsheet?  Modifying formula above as I guess it should be.
+        granular_filter_gravel_volume = granular_filter_gravel_depth * granular_filter_gravel_total_cross_sectional_length * granular_filter_gravel_length #E164 #=E160*E162*E163
 
         #secondary_armor_toe_small_riprap_seaside
         secondary_armor_toe_small_riprap_seaside_width_total = secondary_armor_toe_small_riprap_seaside_width_exposed + ( 2.0 * secondary_armor_toe_small_riprap_seaside_depth * seaside_slope )  #E169 #=E168+2*E167*E136
@@ -648,7 +616,6 @@ def multiDikeSingleBermCombo(length, elev, params):
 
         #excavate_and_replace_with_compacted_gravel
         excavate_and_replace_with_compacted_gravel_depth = 1.0  #E209 #=1
-        #CONFLICTS excavate_and_replace_with_compacted_gravel_width => base_slab_width, stabilization_slab_height
         excavate_and_replace_with_compacted_gravel_width = base_slab_width + 2.0 * stabilization_slab_height  #E210 #=E225+2*E215
         excavate_and_replace_with_compacted_gravel_length = cantilever_floodwall_length  #E211 #=E$10
         excavate_and_replace_with_compacted_gravel_volume_of_gravel = excavate_and_replace_with_compacted_gravel_depth * excavate_and_replace_with_compacted_gravel_width * excavate_and_replace_with_compacted_gravel_length  #E212 #=E209*E210*E211
@@ -727,45 +694,13 @@ def multiDikeSingleBermCombo(length, elev, params):
 
 
         #CONSTRUCTION MATERIALS SUMMARY
-        sand =  sloped_caissons_volume_sand + rectangular_caissons_volume_sand #m^3 =SUM(E81;E91)
-        gravel =  leveling_course_volume + filter_toe_berm_gravel_seaside_volume + granular_filter_gravel_volume + filter_toe_berm_gravel_leeside_volume + excavate_and_replace_with_compacted_gravel_volume_of_gravel #m^3 =SUM(E63;E157;E164;E199;E212)
-        quarry_run_stone =  dredge_and_replace_volume + core_volume + dredge_and_replace_with_quarry_run_stone_volume + core_quarry_run_stone_volume #m^3 =SUM(E34;E40;E143;E150)
-        large_riprap =  primary_armor_berm_volume + leeside_armor_berm_volume + primary_armor_large_riprap_volume #m^3 =SUM(E57;E130;E185)
-        small_riprap =  scour_blanket_toe_berm_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m^3 =SUM(E47;E171;E177;E192)
-        concrete = primary_mass_volume + sloped_caissons_volume_concrete + rectangular_caissons_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume + leeside_mass_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
+        sand =  sloped_caissons_concrete_filled_with_sand_volume_sand + rectangular_caissons_concrete_filled_with_sand_volume_sand #m^3 =SUM(E81;E91)
+        gravel = leveling_course_gravel_volume + filter_toe_berm_gravel_seaside_volume + granular_filter_gravel_volume + filter_toe_berm_gravel_leeside_volume + excavate_and_replace_with_compacted_gravel_volume_of_gravel #m^3 =SUM(E63;E157;E164;E199;E212)
+        quarry_run_stone =  dredge_and_replace_with_quarry_run_stone_volume_caisson + core_quarry_run_stone_volume_caisson + dredge_and_replace_with_quarry_run_stone_volume + core_quarry_run_stone_volume #m^3 =SUM(E34;E40;E143;E150)
+        large_riprap = primary_armor_berm_large_riprap_volume + leeside_armor_berm_large_riprap_volume + primary_armor_large_riprap_volume #m^3 =SUM(E57;E130;E185)
+        small_riprap = scour_blanket_toe_berm_small_riprap_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m^3 =SUM(E47;E171;E177;E192)
+        concrete = primary_mass_concrete_block_volume + sloped_caissons_concrete_filled_with_sand_volume_concrete + rectangular_caissons_concrete_filled_with_sand_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume_concrete + leeside_mass_concrete_block_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
         structural_steel = ( stabilization_slab_mass_of_reinforcing_steel + base_slab_mass_of_reinforcing_steel + base_slab_mass_of_sheet_pile_steel + h_pile_supports_mass_of_reinforcing_steel + wall_stem_mass_of_reinforcing_steel ) / 1000 #tonv =SUM(E221;E232;E235;E245;E255)/1000
-
-        print 'leveling_course_volume'
-        print 'filter_toe_berm_gravel_seaside_volume'
-        print 'granular_filter_gravel_volume'
-        print 'filter_toe_berm_gravel_leeside_volume'
-        print 'excavate_and_replace_with_compacted_gravel_volume_of_gravel'
-
-        print leveling_course_volume
-        print filter_toe_berm_gravel_seaside_volume
-        print granular_filter_gravel_volume
-        print filter_toe_berm_gravel_leeside_volume
-        print excavate_and_replace_with_compacted_gravel_volume_of_gravel
-
-
-
-        print 'sloped_caissons_volume_sand'
-        print 'rectangular_caissons_volume_sand'
-
-        print sloped_caissons_volume_sand
-        print rectangular_caissons_volume_sand
-
-
-        print primary_mass_volume
-        print sloped_caissons_volume_concrete
-        print rectangular_caissons_volume_concrete
-        print intermediate_caisson_walls_volume_concrete
-        print caisson_cap_volume
-        print leeside_mass_volume
-        print stabilization_slab_volume_of_concrete
-        print base_slab_volume_of_concrete
-        print wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
-
 
         #Testing print values
         print 'cantilever_floodwall_length'
@@ -800,30 +735,6 @@ def multiDikeSingleBermCombo(length, elev, params):
         print small_riprap
         print concrete
         print structural_steel
-
-        #print 'granular_filter_gravel_depth'
-        #print 'granular_filter_gravel_height'
-        #print 'granular_filter_gravel_total_cross_sectional_length'
-        #print 'granular_filter_gravel_length'
-        #print 'seaside_slope'
-        #print 'core_quarry_run_stone_width_top'
-        #print 'core_quarry_run_stone_height'
-
-        #print granular_filter_gravel_depth
-        #print granular_filter_gravel_height
-        #print granular_filter_gravel_total_cross_sectional_length
-        #print granular_filter_gravel_length
-        #print seaside_slope
-        #print core_quarry_run_stone_width_top
-        #print core_quarry_run_stone_height
-
-
-        #### Rubble Mound
-# E14   elev
-
-# new E14 length
-
-
 
 
     else :
