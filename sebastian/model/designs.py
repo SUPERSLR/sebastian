@@ -246,6 +246,8 @@ def SMCDD(length, elev, params):
 # Implemented by Keith Mosher
 def multiDikeSingleBermCombo(length, elev, params):
     print "multiDikeSingleBermCombo with 10/13 formula"
+    # This function has hard coded values for freeboard and maxdepth
+    # They are defined in the spreadsheet with calculations for structure size and can't be modified
 
     # Import math module for square roots
     import math
@@ -263,6 +265,9 @@ def multiDikeSingleBermCombo(length, elev, params):
     highTide = float(params['mean_high_high_tide'])
     # mean low-low tide height
     lowTide = float(params['mean_low_low_tide'])
+
+
+
     # dike flat top width
     dikeTop = float(params['dike_flat_top'])
     # foundation height
@@ -343,75 +348,135 @@ def multiDikeSingleBermCombo(length, elev, params):
     max_depth = float(params['min_elevation'])
     #print "KMB2 length: %s elev: %s max_depth: %s" % (length, elev, max_depth)
 
+    print 'slr'
+    print slr
+    print '###'
+    print 'freeboard'
+    print freeboard
+    print '###'
+    print 'wave'
+    print wave
+    print '###'
+    print 'surge'
+    print surge
+    print '###'
+    print 'highTide'
+    print highTide
+    print '###'
+    print 'lowTide'
+    print lowTide
+    print '###'
+
+
+    # havg will be different if it is for a floodwall or a breakwater
+    # DWSEL = MHHW + SLR + (100-year Storm Surge * 1.1)
+    # cantilever_floodwall
+    # havg = avg (DWSEL + Freeboard - EG - 0.5m)
+    # rubble_breakwater
+    # havg = avg (DWSEL + Freeboard - EG)
+    # caisson_breakwater
+    # havg = avg (DWSEL + Freeboard - EG)
+
+    # The best option is to use a floodwall, if it's too deep, a rubble breakwater, and if it's deeper than that then a caisson breakwater
+    # In order to figure out what to use, calculate the floodwall and breakwater havg, and then find the minimum required structure
+
+    dwsel = highTide + slr + surge * 1.1
+
+    freeboard_floodwall = 0.9
+    freeboard_breakwater = 0.6
+
+    havg_floodwall = dwsel + freeboard_floodwall - elev - 0.5
+    havg_breakwater = dwsel + freeboard_breakwater - elev
+
+
+
+    print 'dwsel'
+    print dwsel
+    print '###'
+    print 'freeboard_floodwall'
+    print freeboard_floodwall
+    print '###'
+    print 'freeboard_breakwater'
+    print freeboard_breakwater
+    print '###'
+    print 'havg_floodwall'
+    print havg_floodwall
+    print '###'
+    print 'havg_breakwater'
+    print havg_breakwater
+    print '###'
+
+
+    cantilever_floodwall_min_havg = 0.0
+    cantilever_floodwall_min_height = 2.0
+    cantilever_floodwall_max_height = 10.0
+    rubble_breakwater_min_havg = 0.0
+    rubble_breakwater_min_height = 7.0
+    rubble_breakwater_max_height = 15.0
+    caisson_breakwater_min_havg = 15.0
+    caisson_breakwater_min_height = 15.0
+    caisson_breakwater_max_height = 60.0
+
+
     print 'elev'
     print elev
-    if elev > 0 :
+    if havg_floodwall <= cantilever_floodwall_max_height :
         print "berm"
-        cantilever_floodwall_length = length #E10 #=
-        cantilever_floodwall_height = elev #E11 #=
-        rubble_breakwater_length = 0 #E12 #=
-        rubble_breakwater_height = 0 #E13 #=
-        caisson_breakwater_length = 0 #E14 #=
-        caisson_breakwater_height = 0 #E15 #=
-    elif elev <=0 and elev > -15 :
+        cantilever_floodwall_length = length #E10
+        if havg_floodwall > cantilever_floodwall_min_height :
+            cantilever_floodwall_height = havg_floodwall #E11
+        else :
+            cantilever_floodwall_height = cantilever_floodwall_min_height #E11
+        rubble_breakwater_length = 0 #E12
+        rubble_breakwater_height = 0 #E13
+        caisson_breakwater_length = 0 #E14
+        caisson_breakwater_height = 0 #E15
+    elif havg_breakwater > rubble_breakwater_min_havg and havg_breakwater <= rubble_breakwater_max_height :
         print "rubble mound breakwater"
-        cantilever_floodwall_length = 0 #E10 #=
-        cantilever_floodwall_height = 0 #E11 #=
-        rubble_breakwater_length = length #E12 #=
-        rubble_breakwater_height = -elev #E13 #=
-        caisson_breakwater_length = 0 #E14 #=
-        caisson_breakwater_height = 0 #E15 #=
-    elif elev <= -15 and elev > -60  :
+        cantilever_floodwall_length = 0 #E10
+        cantilever_floodwall_height = 0 #E11
+        rubble_breakwater_length = length #E12
+        if havg_breakwater > rubble_breakwater_min_height :
+            rubble_breakwater_height = havg_breakwater #E13
+        else :
+            rubble_breakwater_height = rubble_breakwater_min_height #E13
+        caisson_breakwater_length = 0 #E14
+        caisson_breakwater_height = 0 #E15
+    elif havg_breakwater >= caisson_breakwater_min_havg and havg_breakwater <= caisson_breakwater_max_height :
         print "deep breakwater"
-        cantilever_floodwall_length = 0 #E10 #=
-        cantilever_floodwall_height = 0 #E11 #=
-        rubble_breakwater_length = 0 #E12 #=
-        rubble_breakwater_height = 0 #E13 #=
-        caisson_breakwater_length = length #E14 #=
-        caisson_breakwater_height = -elev #E15 #=
-    elif elev <= -60 and elev >= max_depth :
+        cantilever_floodwall_length = 0 #E10
+        cantilever_floodwall_height = 0 #E11
+        rubble_breakwater_length = 0 #E12
+        rubble_breakwater_height = 0 #E13
+        caisson_breakwater_length = length #E14
+        caisson_breakwater_height = havg_breakwater #E15
+    elif havg_breakwater > caisson_breakwater_max_height :
         print "error, water too deep"
         #TODO: how to return deep error?
-        cantilever_floodwall_length = 0 #E10 #=
-        cantilever_floodwall_height = 0 #E11 #=
-        rubble_breakwater_length = 0 #E12 #=
-        rubble_breakwater_height = 0 #E13 #=
-        caisson_breakwater_length = 0 #E14 #=
-        caisson_breakwater_height = 0 #E15 #=
+        cantilever_floodwall_length = 0 #E10
+        cantilever_floodwall_height = 0 #E11
+        rubble_breakwater_length = 0 #E12
+        rubble_breakwater_height = 0 #E13
+        caisson_breakwater_length = 0 #E14
+        caisson_breakwater_height = 0 #E15
+    else :
+        # Existing Grade (EG) is greater than Design Water Surface ELevation (DWSEL), no structure needed
+        print "safe elevation, no structure needed"
+        #TODO: how to return deep error?
+        cantilever_floodwall_length = 0 #E10
+        cantilever_floodwall_height = 0 #E11
+        rubble_breakwater_length = 0 #E12
+        rubble_breakwater_height = 0 #E13
+        caisson_breakwater_length = 0 #E14
+        caisson_breakwater_height = 0 #E15
 
 
     density_of_steel = 7850 # kg/m3 #$LUTs.D$3
     density_of_concrete = 2400 # kg/m3 #$LUTs.D$4
 
-#NOTE TODO Update elev calculations
-#NOTE elev appears to be the inverse of height, possibly set height values as -elev?  maybe only for rubble breakwater and floodwall
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 2 #E11 #=
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 5 #E11 #=
-        #cantilever_floodwall_length = 460 #E10 #=
-        #cantilever_floodwall_height = 10 #E11 #=
-        #cantilever_floodwall_length = 0 #E10 #=
-        #cantilever_floodwall_height = 0 #E11 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 7 #E13 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 11 #E13 #=
-        #rubble_breakwater_length = 460 #E12 #=
-        #rubble_breakwater_height = 15 #E13 #=
-        #rubble_breakwater_length = 0 #E12 #=
-        #rubble_breakwater_height = 0 #E13 #=
-        #caisson_breakwater_length = 460 #E14 #=
-        #caisson_breakwater_height = 15 #E15 #=
-        #caisson_breakwater_length = 460 #E14 #=
-        #caisson_breakwater_height = 42 #E15 #=
-        #caisson_breakwater_length = 460 #E14 #=
-        #caisson_breakwater_height = 60 #E15 #=
-        #caisson_breakwater_length = 0 #E14 #=
-        #caisson_breakwater_height = 0 #E15 #=
-
-        #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
-        # TODO find and code freeboard
+    #NOTE TODO Update elev calculations
+    #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
+    #TODO find and code freeboard
 
     # Caisson Breakwater Parameters
     #moved up to avoid ordering conflicts
@@ -677,8 +742,6 @@ def multiDikeSingleBermCombo(length, elev, params):
         base_slab_depth = 1.0
     else :
         base_slab_depth = 1.5  #E224 #if (IF(E206<4;1;1.5)
-    print 'base_slab_depth'
-    print base_slab_depth
     base_slab_heel_width = base_slab_width / 4.0 * 3.0  #E226 #=E225/4*3
     base_slab_toe_width = base_slab_width / 4.0  #E227 #=E225/4
     base_slab_length = cantilever_floodwall_length  #E228 #=E$10
@@ -743,41 +806,6 @@ def multiDikeSingleBermCombo(length, elev, params):
     small_riprap = scour_blanket_toe_berm_small_riprap_volume + secondary_armor_toe_small_riprap_seaside_volume + secondary_armor_small_riprap_volume + secondary_armor_toe_small_riprap_leeside_volume #m^3 =SUM(E47;E171;E177;E192)
     concrete = primary_mass_concrete_block_volume + sloped_caissons_concrete_filled_with_sand_volume_concrete + rectangular_caissons_concrete_filled_with_sand_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume_concrete + leeside_mass_concrete_block_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
     structural_steel = ( stabilization_slab_mass_of_reinforcing_steel + base_slab_mass_of_reinforcing_steel + base_slab_mass_of_sheet_pile_steel + h_pile_supports_mass_of_reinforcing_steel + wall_stem_mass_of_reinforcing_steel ) / 1000 #tonv =SUM(E221;E232;E235;E245;E255)/1000
-
-    #Testing print values
-    print 'cantilever_floodwall_length'
-    print 'cantilever_floodwall_height'
-    print 'rubble_breakwater_length'
-    print 'rubble_breakwater_height'
-    print 'caisson_breakwater_length'
-    print 'caisson_breakwater_height'
-
-    print 'sand'
-    print 'gravel'
-    print 'quarry_run_stone'
-    print 'large_riprap'
-    print 'small_riprap'
-    print 'concrete'
-    print 'structural_steel'
-
-    print cantilever_floodwall_length
-    print cantilever_floodwall_height
-    print rubble_breakwater_length
-    print rubble_breakwater_height
-    print caisson_breakwater_length
-    print caisson_breakwater_height
-
-    print ''
-    print ''
-
-    print sand
-    print gravel
-    print quarry_run_stone
-    print large_riprap
-    print small_riprap
-    print concrete
-    print structural_steel
-
 
     #TODO: update return function and value weighting function
     toeVolume = 1;
