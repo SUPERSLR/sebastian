@@ -348,26 +348,6 @@ def multiDikeSingleBermCombo(length, elev, params):
     max_depth = float(params['min_elevation'])
     #print "KMB2 length: %s elev: %s max_depth: %s" % (length, elev, max_depth)
 
-    print 'slr'
-    print slr
-    print '###'
-    print 'freeboard'
-    print freeboard
-    print '###'
-    print 'wave'
-    print wave
-    print '###'
-    print 'surge'
-    print surge
-    print '###'
-    print 'highTide'
-    print highTide
-    print '###'
-    print 'lowTide'
-    print lowTide
-    print '###'
-
-
     # havg will be different if it is for a floodwall or a breakwater
     # DWSEL = MHHW + SLR + (100-year Storm Surge * 1.1)
     # cantilever_floodwall
@@ -387,24 +367,6 @@ def multiDikeSingleBermCombo(length, elev, params):
 
     havg_floodwall = dwsel + freeboard_floodwall - elev - 0.5
     havg_breakwater = dwsel + freeboard_breakwater - elev
-
-
-
-    print 'dwsel'
-    print dwsel
-    print '###'
-    print 'freeboard_floodwall'
-    print freeboard_floodwall
-    print '###'
-    print 'freeboard_breakwater'
-    print freeboard_breakwater
-    print '###'
-    print 'havg_floodwall'
-    print havg_floodwall
-    print '###'
-    print 'havg_breakwater'
-    print havg_breakwater
-    print '###'
 
 
     cantilever_floodwall_min_havg = 0.0
