@@ -33,12 +33,15 @@ if __name__ == "__main__":
     #w_override = 0.17
     #run_type = 'networkx'
 
-    simulation_equation = GeoUtils.constants.Equations.KMB2
+    simulation_equation = GeoUtils.constants.Equations.KDBS
+    #simulation_equation = GeoUtils.constants.Equations.KMB2
     #simulation_equation = GeoUtils.constants.Equations.BMASW
     #simulation_equation = GeoUtils.constants.Equations.SMCDD
 
     #Args are (in order) dike/berm/both old/x [optional] port number
-    if len(sys.argv) < 3 or len(sys.argv) > 4 or (len(sys.argv) == 4 and not (sys.argv[3] == '10report' or isinstance(sys.argv[3],int))) or not (sys.argv[1] == 'both' or sys.argv[1] == 'dike' or sys.argv[1] == 'berm') :
+    if len(sys.argv) < 3 or len(sys.argv) > 4 or not (sys.argv[1] == 'both' or sys.argv[1] == 'dike' or sys.argv[1] == 'berm') :
+#or (len(sys.argv) == 4 and not (sys.argv[3] == '10report' or isinstance(sys.argv[3],int)))
+
         print "usage: batchAllRun.py dike/berm/both old/x port_number/10report[optional]"
         print "Parameter 1: \"dike\" runs just dike calculations, \"berm\" just berm calculations, and \"both\", unsurprisingly, runs both (all dike followed by all berm)."
         print "Parameter 2: This specifies which calculation model to use.  \"x\" uses networkx, which is faster and better, but may not be installed on some machines.  \"old\" uses the original manually entered functions."

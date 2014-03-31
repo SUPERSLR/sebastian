@@ -244,8 +244,8 @@ def SMCDD(length, elev, params):
 
 # Nathan Chase's SUPERSLR Design 10/2013
 # Implemented by Keith Mosher
-def multiDikeSingleBermCombo(length, elev, params):
-    print "multiDikeSingleBermCombo with 10/13 formula"
+def dikeOrBermSection(length, elev, params):
+#    print "dikeOrBermSection"
     # This function has hard coded values for freeboard and maxdepth
     # They are defined in the spreadsheet with calculations for structure size and can't be modified
 
@@ -380,10 +380,10 @@ def multiDikeSingleBermCombo(length, elev, params):
     caisson_breakwater_max_height = 60.0
 
 
-    print 'elev'
-    print elev
+#    print 'elev'
+#    print elev
     if havg_floodwall <= cantilever_floodwall_max_height :
-        print "berm"
+#        print "berm"
         cantilever_floodwall_length = length #E10
         if havg_floodwall > cantilever_floodwall_min_height :
             cantilever_floodwall_height = havg_floodwall #E11
@@ -394,7 +394,7 @@ def multiDikeSingleBermCombo(length, elev, params):
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
     elif havg_breakwater > rubble_breakwater_min_havg and havg_breakwater <= rubble_breakwater_max_height :
-        print "rubble mound breakwater"
+#        print "rubble mound breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = length #E12
@@ -405,7 +405,7 @@ def multiDikeSingleBermCombo(length, elev, params):
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
     elif havg_breakwater >= caisson_breakwater_min_havg and havg_breakwater <= caisson_breakwater_max_height :
-        print "deep breakwater"
+#        print "deep breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = 0 #E12
@@ -413,7 +413,7 @@ def multiDikeSingleBermCombo(length, elev, params):
         caisson_breakwater_length = length #E14
         caisson_breakwater_height = havg_breakwater #E15
     elif havg_breakwater > caisson_breakwater_max_height :
-        print "error, water too deep"
+#        print "error, water too deep"
         #TODO: how to return deep error?
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -423,7 +423,7 @@ def multiDikeSingleBermCombo(length, elev, params):
         caisson_breakwater_height = 0 #E15
     else :
         # Existing Grade (EG) is greater than Design Water Surface ELevation (DWSEL), no structure needed
-        print "safe elevation, no structure needed"
+ #       print "safe elevation, no structure needed"
         #TODO: how to return deep error?
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -793,13 +793,15 @@ def multiDikeSingleBermCombo(length, elev, params):
                'dikeVol' : dikeVolume,
                'foundVol' : foundVolume,
                'armorVol' : armorVolume,
-               'cost' : sand + gravel * 3 + quarry_run_stone * 20 + large_riprap * 10 + small_riprap * 5 + concrete * 100 + structural_steel * 1000
+
+               # cost for optimization is total volume of material in m^3
+               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + (structural_steel * 1000 / density_of_steel)
             }
 
 
 # Nathan Chase's SUPERSLR Design
 # Implemented by Keith Mosher
-def multiDikeSingleBermComboOldSpreadsheet(length, elev, params):
+def multiDikeSingleBermCombo(length, elev, params):
     # Set parameters
     # sea level rise height
     slr = float(params['sea_level_rise'])

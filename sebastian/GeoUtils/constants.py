@@ -4,6 +4,7 @@
 # Constants used throughout the program
 
 class Equations:
+        KDBS  = "KDBS"
         KMB2  = "KMB2"
         BMASW = "BMASW"
         SMCDD = "SMCDD"

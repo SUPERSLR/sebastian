@@ -26,7 +26,8 @@ if __name__ == "__main__":
     #w_override = 0.17
     run_type = 'networkx'
 
-    simulation_equation = GeoUtils.constants.Equations.KMB2
+    simulation_equation = GeoUtils.constants.Equations.KDBS
+    #simulation_equation = GeoUtils.constants.Equations.KMB2
     #simulation_equation = GeoUtils.constants.Equations.BMASW
 
     if len(sys.argv) > 1 :

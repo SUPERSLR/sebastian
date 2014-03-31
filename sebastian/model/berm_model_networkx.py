@@ -124,6 +124,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
 
     # Dictionary of possible cross-section equations
     eqns = {
+            GeoUtils.constants.Equations.KDBS : designs.dikeOrBermSection,
             GeoUtils.constants.Equations.KMB2 : designs.multiDikeSingleBermCombo,
             GeoUtils.constants.Equations.BMASW : designs.pieceByPiece,
             GeoUtils.constants.Equations.SMCDD : designs.SMCDD
@@ -343,6 +344,8 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     '''
 
+    print 'elevdata'
+    print elevdata
     # Get grid
     response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata)
 
@@ -356,6 +359,17 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     # Dictionary of costs to paths
     SPs = {}
+
+    print "SPs"
+    print SPs
+    print "graph"
+    print graph
+    print "startpts"
+    print startpts
+    print 'endpts'
+    print endpts
+    print 'bPoly'
+    print bPoly
 
     # Run shortest path algorithm for each start point and end point
     for start in startpts:
