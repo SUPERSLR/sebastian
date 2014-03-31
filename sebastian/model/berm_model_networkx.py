@@ -360,17 +360,6 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     # Dictionary of costs to paths
     SPs = {}
 
-    print "SPs"
-    print SPs
-    print "graph"
-    print graph
-    print "startpts"
-    print startpts
-    print 'endpts'
-    print endpts
-    print 'bPoly'
-    print bPoly
-
     # Run shortest path algorithm for each start point and end point
     for start in startpts:
         for end in endpts:
