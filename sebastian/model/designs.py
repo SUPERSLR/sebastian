@@ -769,6 +769,8 @@ def dikeOrBermSection(length, elev, params):
     concrete = primary_mass_concrete_block_volume + sloped_caissons_concrete_filled_with_sand_volume_concrete + rectangular_caissons_concrete_filled_with_sand_volume_concrete + intermediate_caisson_walls_volume_concrete + caisson_cap_volume_concrete + leeside_mass_concrete_block_volume + stabilization_slab_volume_of_concrete + base_slab_volume_of_concrete + wall_stem_volume_of_concrete #m^3 =SUM(E70;E80;E90;E101;E107;E120;E218;E229;E252)
     structural_steel = ( stabilization_slab_mass_of_reinforcing_steel + base_slab_mass_of_reinforcing_steel + base_slab_mass_of_sheet_pile_steel + h_pile_supports_mass_of_reinforcing_steel + wall_stem_mass_of_reinforcing_steel ) / 1000 #tonv =SUM(E221;E232;E235;E245;E255)/1000
 
+    structural_steel_volume = (structural_steel * 1000 / density_of_steel)
+
     #TODO: update return function and value weighting function
     toeVolume = 1;
     coreVolume = 1;
@@ -778,13 +780,14 @@ def dikeOrBermSection(length, elev, params):
 
     # for purposes of the algorithm, the dike volume can proxy for the cost
     return {
-               'sand': sand,
-               'gravel': gravel,
-               'quarry_run_stone': quarry_run_stone,
-               'large_riprap': large_riprap,
-               'small_riprap': small_riprap,
-               'concrete': concrete,
-               'structural_steel': structural_steel,
+               'sand_volume': sand,
+               'gravel_volume': gravel,
+               'quarry_run_stone_volume': quarry_run_stone,
+               'large_riprap_volume': large_riprap,
+               'small_riprap_volume': small_riprap,
+               'concrete_volume': concrete,
+               'structural_steel_weight': structural_steel,
+               'structural_steel_volume': structural_steel_volume,
 
                'toeVol': toeVolume,
                'elev': elev,
@@ -795,7 +798,7 @@ def dikeOrBermSection(length, elev, params):
                'armorVol' : armorVolume,
 
                # cost for optimization is total volume of material in m^3
-               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + (structural_steel * 1000 / density_of_steel)
+               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + structural_steel_volume
             }
 
 

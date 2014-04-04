@@ -20,8 +20,8 @@ if __name__ == "__main__":
     h_override = ""
     w_override = ""
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #h_override = 0.20
     #w_override = 0.17
     run_type = 'networkx'
@@ -53,8 +53,9 @@ if __name__ == "__main__":
         #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 125')
         #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 135')
 
-
+        #all US10 at once
         portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 or id = 114 or id = 116 or id = 117 or id = 125 or id = 127 or id = 131 or id = 135 or id = 141 or id = 180 order by id desc')
+
         #all US10 one at a time
 
         #portdata, count = DBhandle.query('SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM portdata where id = 112 ')
@@ -138,11 +139,11 @@ if __name__ == "__main__":
             else:
                 # Unpack response from optimization
                 print 'Success'
-                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight = response
+                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume = response
 
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
                 #print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)
@@ -171,6 +172,7 @@ if __name__ == "__main__":
                 # Add entry to portdata as well
                 updateq = 'UPDATE portdata SET defense_volume=%s WHERE ID=%s' % (vol,portID)
                 response2,error2 = DBhandle.query(updateq)
+                print "batchModelRun port updates complete"
         except:
             import sys,traceback
             print 'Unexpected error:<br/><br/>\n<pre>\n%s\n</pre>\n<br/>\n\n' % (traceback.format_exc(),)

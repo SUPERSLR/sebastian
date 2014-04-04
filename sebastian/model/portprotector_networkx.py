@@ -322,17 +322,27 @@ def optimize(pid,w="1",h="1",eq = GeoUtils.constants.Equations.BMASW, elevdata =
     armorVol = 0.0
     foundVol = 0.0
 
+    sand_volume = 0.0
+    gravel_volume = 0.0
+    quarry_run_stone_volume = 0.0
+    large_riprap_volume = 0.0
+    small_riprap_volume = 0.0
+    concrete_volume = 0.0
+    structural_steel_weight = 0.0
+    structural_steel_volume = 0.0
+
     # Shortest path details variable holders
     path = []
     pts = []
     elev = []
     length = 0.0
-    buckets = [];
-    bucket_width = 5;
+    buckets = []
+    bucket_width = 5
     for init_depth in xrange (0, max_depth + bucket_width, bucket_width):
         buckets[init_depth]=0
 
-
+    tallest_section_depth = min_depth
+    shortest_section_depth = max_depth
 
     # Calculate piece volumes and path lists
     for pt in range(0,len(shortestPath)):
@@ -343,11 +353,30 @@ def optimize(pid,w="1",h="1",eq = GeoUtils.constants.Equations.BMASW, elevdata =
             foundVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["foundVol"]
             armorVol += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["armorVol"]
 
+            sand_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["sand_volume"]
+            gravel_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["gravel_volume"]
+            quarry_run_stone_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["quarry_run_stone_volume"]
+            large_riprap_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["large_riprap_volume"]
+            small_riprap_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["small_riprap_volume"]
+            concrete_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["concrete_volume"]
+            structural_steel_weight += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structural_steel_weight"]
+            structural_steel_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structural_steel_volume"]
+
+
         path.append(graph.node[shortestPath[pt]]["latlon"])
         pts.append(graph.node[shortestPath[pt]]["metric"])
-        elev.append(float(graph.node[shortestPath[pt]]["elev"]))
+        current_section_elev = float(graph.node[shortestPath[pt]]["elev"])
+        elev.append(current_section_elev)
+        if current_section_elev < tallest_section_depth :
+            tallest_section_depth = current_section_elev
+        if current_section_elev > shortest_section_depth :
+            shortest_section_depth = current_section_elev
         current_elev_bucket = round(float(graph.node[shortestPath[pt]]["elev"]) / bucket_width)
         buckets[current_elev_bucket] += float(graph.node[shortestPath[pt]]["vars"]["length"]);
+
+    # Max and min depth
+    print "\ntallest_section_depth %s\n" % (tallest_section_depth,)
+    print "\nshortest_section_depth %s\n" % (shortest_section_depth,)
 
     # Average elevation along path
     avg_elev = sum(elev) / len(elev)
@@ -359,14 +388,15 @@ def optimize(pid,w="1",h="1",eq = GeoUtils.constants.Equations.BMASW, elevdata =
         length += math.sqrt((float(pts[i][0]) - float(pts[i-1][0]))**2 + (float(pts[i][1]) - float(pts[i-1][1]))**2)
 
     # Prepare values used to update database
-    output = (path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol, buckets)
+    output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume)
 
     # Return output and no error
     return output,False
 
 
 # Update database
-def updateDB(ge_key,pid,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,eq,elevdata,computeCenter,grid_height,grid_width):
+def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,eq,elevdata,computeCenter,grid_height,grid_width):
+    print "update db"
     # Get current user details
     DBhandle.setConnUserKey(ge_key)
     user = DBhandle.ConnUserName()
@@ -377,8 +407,8 @@ def updateDB(ge_key,pid,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol
     seldata,selrc = DBhandle.query(selq)
 
     for r in seldata:
-        histq = "INSERT INTO portprotector_history (portID,created,attribution,avg_elev,path_length,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
-        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
+        histq = "INSERT INTO portprotector_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
+        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
         histdata,histrc = DBhandle.query(histq)
 
     #delq = 'DELETE FROM portprotector WHERE MBRIntersects(' + bPoly + ',path_geometry)'
@@ -391,12 +421,15 @@ def updateDB(ge_key,pid,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol
 
     # Insert shortest path and volume into database
     insertq = "INSERT INTO portprotector (portID,attribution,avg_elev,path_length,path_volume," +\
-                    "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume," +\
-                    "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
-    insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,length,vol)
-    insertq += "'%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol)
+            "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume," +\
+            "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
+    insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
+    insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume)
     insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
+    print "insert"
+    print insertq
     insertdata,insertrc = DBhandle.query(insertq)
+    print "after insert"
 
     # Return success and no error
     return True,False
@@ -455,13 +488,12 @@ if __name__ == "__main__":
             output = GeoUtils.Interface.uniForm.fullErrorMsgGen(response)
             print output
         else:
+
             # Unpack response from optimization
-            path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,buckets = response
-            for init_depth in xrange (0, max_depth + bucket_width, bucket_width):
-                print 'bucket size: %s bucket length: %s' % (init_depth, buckets[init_depth])
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume = response
 
             # Update database
-            response,error = updateDB(ge_key,pid,path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,eq,elevdata,GeoUtils.constants.computeCenter(),h,w)
+            response,error = updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,eq,elevdata,GeoUtils.constants.computeCenter(),h,w)
 
             if error:
                 # Output error message

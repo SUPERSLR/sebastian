@@ -187,10 +187,11 @@ if __name__ == "__main__":
                 print 'Success'
 ###                print response
 #                path,avg_elev,length,vol,dikeVol,coreVol,toeVol,foundVol,armorVol = response
-                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight = response
+                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume = response
+
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-                response,error = berm_model.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,riprap_volume,aggregate_volume,rebar_volume,cement_volume,riprap_weight,aggregate_weight,rebar_weight,cement_weight,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                response,error = berm_model.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
                 #print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)

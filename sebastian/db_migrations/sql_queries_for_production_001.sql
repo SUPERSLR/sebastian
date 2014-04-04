@@ -1265,6 +1265,8 @@ alter table portprotector_history add column core_volume DOUBLE NOT NULL after p
 alter table portprotector_history add column dike_volume  DOUBLE NOT NULL after path_volume;
 
 /* add new values to portprotector_history and portprotector */
+/* a different set of values was used */
+/*
 alter table portprotector add column riprap_volume DOUBLE NOT NULL after armor_volume;
 alter table portprotector add column aggregate_volume DOUBLE NOT NULL after armor_volume;
 alter table portprotector add column rebar_volume DOUBLE NOT NULL after armor_volume;
@@ -1284,7 +1286,7 @@ alter table portprotector_history add column riprap_weight DOUBLE NOT NULL after
 alter table portprotector_history add column aggregate_weight DOUBLE NOT NULL after riprap_volume;
 alter table portprotector_history add column rebar_weight DOUBLE NOT NULL after riprap_volume;
 alter table portprotector_history add column cement_weight DOUBLE NOT NULL after riprap_volume;
-
+*/
 
 
 --
@@ -1310,13 +1312,13 @@ CREATE TABLE `berm_model` (
   `foundation_volume` double NOT NULL,
   `armor_volume` double NOT NULL,
   `cement_volume` double NOT NULL,
-  `rebar_volume` double NOT NULL,
+/*  `rebar_volume` double NOT NULL,
   `aggregate_volume` double NOT NULL,
   `riprap_volume` double NOT NULL,
   `cement_weight` double NOT NULL,
   `rebar_weight` double NOT NULL,
   `aggregate_weight` double NOT NULL,
-  `riprap_weight` double NOT NULL,
+  `riprap_weight` double NOT NULL,*/
   `path_geometry` geometry NOT NULL,
   `3Dfile` mediumtext NOT NULL,
   `computeCenter` tinytext NOT NULL,
@@ -1351,14 +1353,14 @@ CREATE TABLE `berm_model_history` (
   `toe_volume` double NOT NULL,
   `foundation_volume` double NOT NULL,
   `armor_volume` double NOT NULL,
-  `cement_volume` double NOT NULL,
+/*  `cement_volume` double NOT NULL,
   `rebar_volume` double NOT NULL,
   `aggregate_volume` double NOT NULL,
   `riprap_volume` double NOT NULL,
   `cement_weight` double NOT NULL,
   `rebar_weight` double NOT NULL,
   `aggregate_weight` double NOT NULL,
-  `riprap_weight` double NOT NULL,
+  `riprap_weight` double NOT NULL,*/
   `path_geometry` geometry NOT NULL,
   `3Dfile` mediumtext NOT NULL,
   `computeCenter` tinytext NOT NULL,
@@ -1531,7 +1533,7 @@ update portdata set grid_width=0.16, grid_height=0.22 where id = 135;
 update portdata set grid_width=0.195, grid_height=0.13 where id = 116;
  update portdata set grid_width=0.20, grid_height=0.17 where id = 117;
   update portdata set grid_width=0.14, grid_height=0.20 where id = 116;
-  
+
  update portdata set grid_width=0.135, grid_height=0.195 where id = 116;
 /* add berm specific max and min values */
 alter table modelparameters add column max_elevation_berm FLOAT NOT NULL after min_elevation_cit_id;
