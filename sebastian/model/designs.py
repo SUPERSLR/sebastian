@@ -379,6 +379,7 @@ def dikeOrBermSection(length, elev, params):
     caisson_breakwater_min_height = 15.0
     caisson_breakwater_max_height = 60.0
 
+    structure_required = 0
 
 #    print 'elev'
 #    print elev
@@ -425,6 +426,7 @@ def dikeOrBermSection(length, elev, params):
         # Existing Grade (EG) is greater than Design Water Surface ELevation (DWSEL), no structure needed
  #       print "safe elevation, no structure needed"
         #TODO: how to return deep error?
+        structure_required = 1
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = 0 #E12
@@ -435,6 +437,28 @@ def dikeOrBermSection(length, elev, params):
 
     density_of_steel = 7850 # kg/m3 #$LUTs.D$3
     density_of_concrete = 2400 # kg/m3 #$LUTs.D$4
+
+    #print 'elev'
+    #print elev
+    #print 'dwsel'
+    #print dwsel
+    #print 'havg_floodwall'
+    #print havg_floodwall
+    #print 'havg_breakwater'
+    #print havg_breakwater
+    #print 'cantilever_floodwall_length'
+    #print cantilever_floodwall_length
+    #print 'cantilever_floodwall_height'
+    #print cantilever_floodwall_height
+    #print 'rubble_breakwater_length'
+    #print rubble_breakwater_length
+    #print 'rubble_breakwater_height'
+    #print rubble_breakwater_height
+    #print 'caisson_breakwater_length'
+    #print caisson_breakwater_length
+    #print 'caisson_breakwater_height'
+    #print caisson_breakwater_height
+
 
     #NOTE TODO Update elev calculations
     #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
@@ -778,6 +802,23 @@ def dikeOrBermSection(length, elev, params):
     foundVolume = 1;
     armorVolume = 1;
 
+    #print 'sand_volume'
+    #print sand
+    #print 'gravel_volume'
+    #print gravel
+    #print 'quarry_run_stone_volume'
+    #print quarry_run_stone
+    #print 'large_riprap_volume'
+    #print large_riprap
+    #print 'small_riprap_volume'
+    #print small_riprap
+    #print 'concrete_volume'
+    #print concrete
+    #print 'structural_steel_weight'
+    #print structural_steel
+    #print 'structural_steel_volume'
+    #print structural_steel_volume
+
     # for purposes of the algorithm, the dike volume can proxy for the cost
     return {
                'sand_volume': sand,
@@ -788,6 +829,7 @@ def dikeOrBermSection(length, elev, params):
                'concrete_volume': concrete,
                'structural_steel_weight': structural_steel,
                'structural_steel_volume': structural_steel_volume,
+               'structure_height_above_msl': havg_breakwater,
 
                'toeVol': toeVolume,
                'elev': elev,
@@ -798,7 +840,7 @@ def dikeOrBermSection(length, elev, params):
                'armorVol' : armorVolume,
 
                # cost for optimization is total volume of material in m^3
-               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + structural_steel_volume
+               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + structural_steel_volume + structure_required
             }
 
 

@@ -20,8 +20,8 @@ if __name__ == "__main__":
     h_override = ""
     w_override = ""
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #h_override = 0.20
     #w_override = 0.17
     run_type = 'networkx'
@@ -94,6 +94,12 @@ if __name__ == "__main__":
             else :
                 w = w_override
 
+            #print 'w'
+            #print w
+            #print 'h'
+            #print h
+
+
             if h == 0:
                 h = 0.25
             if w == 0:
@@ -139,16 +145,21 @@ if __name__ == "__main__":
             else:
                 # Unpack response from optimization
                 print 'Success'
-                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume = response
+                path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response
 
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+            if run_type == 'networkx' :
+                response,error = dike_model_networkx.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+            else :
+                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
                 print "portID: %s" % (portID,)
                 #print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)
                 print "elev_data: %s" % (dataset,)
                 print "avg_elev: %s" % (avg_elev,)
+                print "structure_height_above_msl: %s" % (structure_height_above_msl,)
+
                 # Create path for linestring creation
                 ShortestPath = GeoUtils.Features.Path()
                 ShortestPath.fromPointList(path)

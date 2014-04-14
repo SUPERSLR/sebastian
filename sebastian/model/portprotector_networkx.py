@@ -83,6 +83,10 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         (east,west,north,south,elev_data)
     elevdata,elevrowcount = elevDBhandle.query(elevq)
 
+    print 'elevq'
+    print elevq
+    print elevrowcount
+
     # If there are results from the database, process elevation grid
     if elevrowcount == 0:
         # Return error message

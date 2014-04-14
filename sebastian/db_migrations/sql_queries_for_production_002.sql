@@ -5,6 +5,14 @@ insert into modelparameters (eqn , eqn_cit_id , sea_level_rise , sea_level_rise_
 
 
 /* adding fields for bucketing */
+alter table portprotector add column bucket_count_20 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_19 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_18 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_17 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_16 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_15 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_14 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector add column bucket_count_13 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector add column bucket_count_12 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector add column bucket_count_11 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector add column bucket_count_10 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
@@ -19,6 +27,14 @@ alter table portprotector add column bucket_count_2 DOUBLE NOT NULL DEFAULT 0 af
 alter table portprotector add column bucket_count_1 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector add column number_of_buckets DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 
+alter table portprotector_history add column bucket_count_20 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_19 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_18 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_17 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_16 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_15 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_14 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table portprotector_history add column bucket_count_13 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector_history add column bucket_count_12 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector_history add column bucket_count_11 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector_history add column bucket_count_10 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
@@ -33,6 +49,14 @@ alter table portprotector_history add column bucket_count_2 DOUBLE NOT NULL DEFA
 alter table portprotector_history add column bucket_count_1 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector_history add column number_of_buckets DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 
+alter table berm_model add column bucket_count_20 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_19 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_18 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_17 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_16 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_15 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_14 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model add column bucket_count_13 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model add column bucket_count_12 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model add column bucket_count_11 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model add column bucket_count_10 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
@@ -47,6 +71,14 @@ alter table berm_model add column bucket_count_2 DOUBLE NOT NULL DEFAULT 0 after
 alter table berm_model add column bucket_count_1 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model add column number_of_buckets DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 
+alter table berm_model_history add column bucket_count_20 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_19 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_18 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_17 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_16 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_15 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_14 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
+alter table berm_model_history add column bucket_count_13 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model_history add column bucket_count_12 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model_history add column bucket_count_11 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table berm_model_history add column bucket_count_10 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
@@ -159,6 +191,11 @@ alter table berm_model_history add column quarry_run_stone_volume DOUBLE NOT NUL
 alter table berm_model_history add column gravel_volume DOUBLE NOT NULL DEFAULT -1 after armor_volume;
 alter table berm_model_history add column sand_volume DOUBLE NOT NULL DEFAULT -1 after armor_volume;
 
+alter table portprotector add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table portprotector_history add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model_history add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+
 
 
 alter table portprotector drop column cement_volume;
@@ -196,6 +233,9 @@ alter table berm_model_history drop column cement_weight;
 alter table berm_model_history drop column rebar_weight;
 alter table berm_model_history drop column aggregate_weight;
 alter table berm_model_history drop column riprap_weight;
+
+
+
 
 
 
