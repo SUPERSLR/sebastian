@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     # Import time module to record runtime
     import time
-    import portprotector
+    import dike_model
     import dike_model_networkx
     for port in portdata:
         try:
@@ -149,10 +149,8 @@ if __name__ == "__main__":
 
                 # Update database
 #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-            if run_type == 'networkx' :
-                response,error = dike_model_networkx.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
-            else :
-                response,error = portprotector.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                response,error = dike_model.updateDB('22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+
                 print "portID: %s" % (portID,)
                 #print "attribution: %s" % ("Keith Mosher",)
                 print "equation: %s" % (simulation_equation,)

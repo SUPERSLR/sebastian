@@ -66,7 +66,7 @@ def computeCenter():
         computeCenters = {
                         "Amazon Cloud" : ["domU-12-31-39-02-29-81"],
                         "Dreamhost" : ["spiderman"],
-                        "Development Server" : ["lappy"],
+                        "Development Server" : ["minime"],
                         "Unavailable" : ["unavailable"]
                 }
 

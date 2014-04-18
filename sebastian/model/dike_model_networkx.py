@@ -432,66 +432,6 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     return output,False
 
 
-# Update database
-def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,computeCenter,grid_height,grid_width):
-    #print 'updateDB running'
-    '''
-    Update database with dike model result
-
-    Parameters
-        @param ge_key - user's identifying key
-        @param pid - port ID
-        @param path - Path object to store in database
-        @param avg_elev - average path elevation
-        @param vol - total path volume
-        @param dikeVol - dike volume
-        @param coreVol - core volume
-        @param toeVol - toe volume
-        @param foundVol - foundation volume
-        @param armorVol - armor volume
-        @param eq - design equation used to calculate path as constant in GeoUtils.constants.Equations
-        @param elevdata - elevation dataset used for grid as constant in GeoUtils.constants.ElevSrc
-        @param computeCenter - computation center where calculation was performed as retrieved from GeoUtils.constants.computeCenter()
-        @param grid_height - height of grid used to calculate path
-        @param grid_width - width of grid used to calculate path
-
-    '''
-    # Get current user details
-    DBhandle.setConnUserKey(ge_key)
-    user = DBhandle.ConnUserName()
-
-    # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM portprotector WHERE '
-    selq += 'portID=%s' % (pid)
-    seldata,selrc = DBhandle.query(selq)
-
-    for r in seldata:
-        histq = "INSERT INTO portprotector_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
-        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
-        histdata,histrc = DBhandle.query(histq)
-
-    delq = 'DELETE FROM portprotector WHERE portID=%s' % (pid)
-    deldata,delrc = DBhandle.query(delq)
-
-    # Create path for linestring creation
-    ShortestPath = GeoUtils.Features.Path()
-    ShortestPath.fromPointList(path)
-
-    # Insert shortest path and volume into database
-    insertq = "INSERT INTO portprotector (portID,attribution,avg_elev,path_length,path_volume," +\
-            "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl" +\
-            "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
-    insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
-    insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
-    insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
-
-    insertdata,insertrc = DBhandle.query(insertq)
-
-    # Return success and no error
-    return True,False
-
-
-
 # If called directly, run with given query string parameters
 if __name__ == "__main__":
     # Import cgi module to get query string

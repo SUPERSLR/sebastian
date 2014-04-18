@@ -380,6 +380,8 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     structural_steel_weight = 0.0
     structural_steel_volume = 0.0
 
+    structure_height_above_msl = 0.0
+
     try:
         prev = False
         for v in sp:
@@ -401,10 +403,24 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
                 structural_steel_weight += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structural_steel_weight"]
                 structural_steel_volume += graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structural_steel_volume"]
 
+            structure_height_above_msl = graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_height_above_msl"]
+
             # Add point details to paths
             path.append(grid[v]["latlon"])
             pts.append(grid[v]["metric"])
             elev.append(float(grid[v]["elev"]))
+
+
+        current_section_elev = float(graph.node[shortestPath[pt]]["elev"])
+        elev.append(current_section_elev)
+        if current_section_elev < tallest_section_depth :
+            tallest_section_depth = current_section_elev
+        if current_section_elev > shortest_section_depth :
+            shortest_section_depth = current_section_elev
+        current_elev_bucket = round(float(graph.node[shortestPath[pt]]["elev"]) / bucket_width)
+        buckets[current_elev_bucket] += float(graph.node[shortestPath[pt]]["vars"]["length"]);
+
+
             # Set previous point to current point
             prev = v
 
@@ -423,14 +439,14 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     avg_elev = sum(elev) / len(elev)
 
     # Prepare values used to update database
-    output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume)
+    output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
 
     # Return output and no error
     return output,False
 
 
 # Update database
-def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,eq,elevdata,computeCenter,grid_height,grid_width):
+def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,computeCenter,grid_height,grid_width):
     '''
     Update database with berm_model result
 
@@ -457,13 +473,13 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
     user = DBhandle.ConnUserName()
 
     # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM berm_model WHERE '
+    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM berm_model WHERE '
     selq += 'portID=%s' % (pid)
     seldata,selrc = DBhandle.query(selq)
 
     for r in seldata:
-        histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
-        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
+        histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
+        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
         histdata,histrc = DBhandle.query(histq)
 
     delq = 'DELETE FROM berm_model WHERE portID=%s' % (pid)
@@ -475,10 +491,10 @@ def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorV
 
     # Insert shortest path and volume into database
     insertq = "INSERT INTO berm_model (portID,attribution,avg_elev,path_length,path_volume," +\
-            "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume," +\
+            "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl," +\
             "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
     insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
-    insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume)
+    insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
     insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
     insertdata,insertrc = DBhandle.query(insertq)
 
@@ -539,10 +555,10 @@ if __name__ == "__main__":
             print output
         else:
             # Unpack response from optimization
-            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume = response
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response
 
             # Update database
-            response,error = updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,eq,elevdata,GeoUtils.constants.computeCenter(),h,w)
+            response,error = updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,GeoUtils.constants.computeCenter(),h,w)
 
             if error:
                 # Output error message

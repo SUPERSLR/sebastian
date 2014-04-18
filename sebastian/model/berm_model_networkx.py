@@ -184,6 +184,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
     # Graph for processing model
     graph = nx.Graph()
 
+    # Convert the points from the database from lat/lng to cartesian x/y
     for r in elevdata:
         # Create new Point based on database record
         curPt = GeoUtils.Features.Point(x=float(r['longitude']),y=float(r['latitude']),elev=float(r['elevation']))
@@ -202,7 +203,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                                 metric=(distCurInit["horiz"],distCurInit["vertical"]),
                                 elev=curPt.elev)
 
-    print "make networkx finished grid, number of points: %s" % (len(graph))
+    print "make networkx finished grid, number of points: %s" % (graph.number_of_nodes())
     print "makeNetworkx, post-grid, pre-delete, current time: %s" % (time.time()-startMakeNetworkTime)
 
     # List of keys to delete because of avoid polygons or parameter exclusion
@@ -280,7 +281,7 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
         return errtxt,True
 
 
-    print "final number of grid points, after deletions: %s" % (len(graph))
+    print "final number of grid points, after deletions: %s" % (graph.number_of_nodes())
     print "makeNetworkx, post-delete, pre-graph, current time: %s" % (time.time()-startMakeNetworkTime)
 
 
@@ -312,28 +313,18 @@ def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoU
                 # Calculate average elevation
                 avg_elev = (float(graph.node[v]["elev"]) + float(graph.node[k]["elev"])) / 2
 
-                #print 'edge location'
-                #print 'lat 1'
-                #print graph.node[v]["latlon"][0]
-                #print 'lng 1'
-                #print graph.node[v]["latlon"][1]
-                #print 'lat 2'
-                #print graph.node[k]["latlon"][0]
-                #print 'lng 2'
-                #print graph.node[k]["latlon"][1]
-
                 # Get cost for edge
                 edge_vals = eqns.get(eq)(dist["total"],avg_elev,params)
                 weight = edge_vals['cost']
 
-                # Add edge to graph is not
+                # Add edge to graph if not already there
                 if not graph.has_edge(v,k):
                     graph.add_edge(v,k,weight=weight,vars=edge_vals)
-#                    graph.add_edge(v,k,weight=weight,vars=vars)
 
 
 
-    print "makeNetworkx, graph-complete, function-complete, current time: %s" % (time.time()-startMakeNetworkTime)
+    print "makeNetworkx, graph-complete, number of edges: %s" % (graph.number_of_edges(),)
+    print "makeNetworkx, graph-complete, function-complete, current time: %s" % (time.time()-startMakeNetworkTime,)
 
     # Return graph and no error
     return (graph,spts,epts,boundingPoly),False
@@ -374,11 +365,42 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     # Dictionary of costs to paths
     SPs = {}
 
+    import time
+    startMakeNetworkTime = time.time()
     # Run shortest path algorithm for each start point and end point
     for start in startpts:
         for end in endpts:
+            print "path begin, current time: %s" % (time.time()-startMakeNetworkTime,)
+            pbegin = time.time()-startMakeNetworkTime
             path = nx.shortest_path(graph,source=start,target=end,weight="weight")
+            pend = time.time()-startMakeNetworkTime
+            ibegin = time.time()-startMakeNetworkTime
+            print "path end, current time: %s" % (time.time()-startMakeNetworkTime,)
+            print "iterate begin, current time: %s" % (time.time()-startMakeNetworkTime,)
+            print 'path'
+            print path
+            volume = 0.0
+            for pt in range(0,len(path)-1):
+                print 'pt'
+                print pt
+                print 'path[pt]'
+                print path[pt]
+                print 'path[pt+1]'
+                print path[pt+1]
+                print 'graph[path[pt]][path[pt+1]]'
+                print graph[path[pt]][path[pt+1]]['vars']['cost']
+                volume += graph[path[pt]][path[pt+1]]['vars']['cost']
+            print "iterate volume, %s" % (volume,)
+            print "iterate end, current time: %s" % (time.time()-startMakeNetworkTime,)
+            print "length begin, current time: %s" % (time.time()-startMakeNetworkTime,)
+            iend = time.time()-startMakeNetworkTime
+            spvbegin = time.time()-startMakeNetworkTime
             vol = nx.shortest_path_length(graph,source=start,target=end,weight="weight")
+            spvend = time.time()-startMakeNetworkTime
+            print "sp volume, %s" % (vol,)
+            print "length end, current time: %s" % (time.time()-startMakeNetworkTime,)
+            print "ptime: %s itime: %s spvtime: %s spv-i: %s" % (pend-pbegin, iend-ibegin, spvend-spvbegin, (spvend-spvbegin) - (iend-ibegin),)
+
             SPs[vol] = path
 
     # Find minimum volume
@@ -445,70 +467,6 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
 
     # Return output and no error
     return output,False
-
-
-# Update database
-def updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,computeCenter,grid_height,grid_width):
-    print 'updateDB running berm_model_networkx'
-    '''
-    Update database with berm_model result
-
-    Parameters
-        @param ge_key - user's identifying key
-        @param pid - port ID
-        @param path - Path object to store in database
-        @param avg_elev - average path elevation
-        @param vol - total path volume
-        @param dikeVol - dike volume
-        @param coreVol - core volume
-        @param toeVol - toe volume
-        @param foundVol - foundation volume
-        @param armorVol - armor volume
-        @param eq - design equation used to calculate path as constant in GeoUtils.constants.Equations
-        @param elevdata - elevation dataset used for grid as constant in GeoUtils.constants.ElevSrc
-        @param computeCenter - computation center where calculation was performed as retrieved from GeoUtils.constants.computeCenter()
-        @param grid_height - height of grid used to calculate path
-        @param grid_width - width of grid used to calculate path
-
-    '''
-    # Get current user details
-    DBhandle.setConnUserKey(ge_key)
-    user = DBhandle.ConnUserName()
-
-    # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM berm_model WHERE '
-    selq += 'portID=%s' % (pid)
-    seldata,selrc = DBhandle.query(selq)
-
-    for r in seldata:
-        histq = "INSERT INTO berm_model_history (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('"
-        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
-        histdata,histrc = DBhandle.query(histq)
-
-    delq = 'DELETE FROM berm_model WHERE portID=%s' % (pid)
-    deldata,delrc = DBhandle.query(delq)
-
-    # Create path for linestring creation
-    ShortestPath = GeoUtils.Features.Path()
-    ShortestPath.fromPointList(path)
-
-    # Insert shortest path and volume into database
-    insertq = "INSERT INTO berm_model (portID,attribution,avg_elev,path_length,path_volume," +\
-            "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl" +\
-            "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
-    insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
-    insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
-    insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
-
-
-    print "insert berm"
-    print insertq
-    insertdata,insertrc = DBhandle.query(insertq)
-    print "after insert berm"
-
-    # Return success and no error
-    return True,False
-
 
 
 # If called directly, run with given query string parameters
