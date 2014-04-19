@@ -362,44 +362,30 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
     # Unpack response
     (graph,startpts,endpts,bPoly) = response
 
+    if (len(startpts) < 1 or len(endpts) < 1) :
+        # Return error message
+        errtxt = "There are no data points in the starting and/or ending polygon.<br/><br/>\n"
+        errtxt += "Starting Polygon data point count: %s " % (len(startpts),)
+        errtxt += "End Polygon data point count: %s " % (len(endpts),)
+        errtxt += "Please update the StartEnd polygons to match the desired data set."
+        errtxt += "or report this error to %s " % (GeoUtils.constants.contactEmail,)
+        errtxt += "along with the following information:\n"
+        errtxt += "Port ID - %s\n" % (pid,)
+
+        # Return error text and error
+        # Function exits
+        return errtxt,True
+
     # Dictionary of costs to paths
     SPs = {}
 
-    import time
-    startMakeNetworkTime = time.time()
     # Run shortest path algorithm for each start point and end point
     for start in startpts:
         for end in endpts:
-            print "path begin, current time: %s" % (time.time()-startMakeNetworkTime,)
-            pbegin = time.time()-startMakeNetworkTime
             path = nx.shortest_path(graph,source=start,target=end,weight="weight")
-            pend = time.time()-startMakeNetworkTime
-            ibegin = time.time()-startMakeNetworkTime
-            print "path end, current time: %s" % (time.time()-startMakeNetworkTime,)
-            print "iterate begin, current time: %s" % (time.time()-startMakeNetworkTime,)
-            print 'path'
-            print path
-            volume = 0.0
+            vol = 0.0
             for pt in range(0,len(path)-1):
-                print 'pt'
-                print pt
-                print 'path[pt]'
-                print path[pt]
-                print 'path[pt+1]'
-                print path[pt+1]
-                print 'graph[path[pt]][path[pt+1]]'
-                print graph[path[pt]][path[pt+1]]['vars']['cost']
-                volume += graph[path[pt]][path[pt+1]]['vars']['cost']
-            print "iterate volume, %s" % (volume,)
-            print "iterate end, current time: %s" % (time.time()-startMakeNetworkTime,)
-            print "length begin, current time: %s" % (time.time()-startMakeNetworkTime,)
-            iend = time.time()-startMakeNetworkTime
-            spvbegin = time.time()-startMakeNetworkTime
-            vol = nx.shortest_path_length(graph,source=start,target=end,weight="weight")
-            spvend = time.time()-startMakeNetworkTime
-            print "sp volume, %s" % (vol,)
-            print "length end, current time: %s" % (time.time()-startMakeNetworkTime,)
-            print "ptime: %s itime: %s spvtime: %s spv-i: %s" % (pend-pbegin, iend-ibegin, spvend-spvbegin, (spvend-spvbegin) - (iend-ibegin),)
+                vol += graph[path[pt]][path[pt+1]]['vars']['cost']
 
             SPs[vol] = path
 

@@ -409,18 +409,6 @@ def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils
             path.append(grid[v]["latlon"])
             pts.append(grid[v]["metric"])
             elev.append(float(grid[v]["elev"]))
-
-
-        current_section_elev = float(graph.node[shortestPath[pt]]["elev"])
-        elev.append(current_section_elev)
-        if current_section_elev < tallest_section_depth :
-            tallest_section_depth = current_section_elev
-        if current_section_elev > shortest_section_depth :
-            shortest_section_depth = current_section_elev
-        current_elev_bucket = round(float(graph.node[shortestPath[pt]]["elev"]) / bucket_width)
-        buckets[current_elev_bucket] += float(graph.node[shortestPath[pt]]["vars"]["length"]);
-
-
             # Set previous point to current point
             prev = v
 
