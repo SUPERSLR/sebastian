@@ -29,7 +29,7 @@ def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
     south = bbox[1]
 
     # Database query
-    dbq = "SELECT ID,portID,attribution,path_length,AsText(path_geometry) FROM berm_model WHERE MBRIntersects(PolyFromText('%s'),path_geometry)" % (GeoUtils.makeBoundingPolygon(north,south,east,west),)
+    dbq = "SELECT ID,portID,attribution,path_length,structure_height_above_msl,AsText(path_geometry) FROM berm_model WHERE MBRIntersects(PolyFromText('%s'),path_geometry)" % (GeoUtils.makeBoundingPolygon(north,south,east,west),)
 
     # Query database
     dbdata,rowcount = DBhandle.query(dbq)

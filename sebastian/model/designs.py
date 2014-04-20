@@ -829,7 +829,7 @@ def dikeOrBermSection(length, elev, params):
                'concrete_volume': concrete,
                'structural_steel_weight': structural_steel,
                'structural_steel_volume': structural_steel_volume,
-               'structure_height_above_msl': havg_breakwater,
+               'structure_height_above_msl': dwsel + freeboard_breakwater,
 
                'toeVol': toeVolume,
                'elev': elev,

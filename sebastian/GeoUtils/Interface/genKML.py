@@ -88,6 +88,7 @@ def InterfacePath(ge_key,PathInfo):
     # ID, Name, and Style
     PlacemarkID = 'ModelPath-%(ID)s' % PathInfo
     PlacemarkName = '%(portID)s' % PathInfo
+    StructureHeightAboveMSL = '%(structure_height_above_msl)s' % PathInfo
     PlacemarkStyle = '%s/kml_styles.py#modelPath' % (BASE_URL)
 
     # iframe located in description
@@ -97,6 +98,8 @@ def InterfacePath(ge_key,PathInfo):
     # Convert MySQL geometry to KML (polygon)
     Geometry = Features.Path()
     Geometry.fromMySQL_linestring(PathInfo["AsText(path_geometry)"])
+    #Uncomment to set wall height on GE to actual wall height.
+    #PlacemarkCoords = Geometry.toKML(height=StructureHeightAboveMSL,altmode="absolute",extrude="yes")
     PlacemarkCoords = Geometry.toKML(height=250,altmode="relativeToSeaFloor",extrude="yes")
 
     return Placemark(id=PlacemarkID,name=PlacemarkName,coordinates=PlacemarkCoords,style=PlacemarkStyle,description=PlacemarkDescription)

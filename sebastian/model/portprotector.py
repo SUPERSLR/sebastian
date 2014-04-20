@@ -287,6 +287,8 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
             print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,grid[best_ept_v]["elev"])
             epts = [best_ept_v]
 
+
+
         print "final number of grid points, after deletions: %s" % (len(grid))
         print "makeNetwork, post-delete, pre-graph, current time: %s" % (time.time()-startMakeNetworkTime)
 
@@ -400,10 +402,10 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                 best_ept_v = v
 
         if best_spt_v <> 0 :
-            print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,grid[best_spt_v]["elev"])
+            print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,graph.node[best_spt_v]["elev"])
             spts = [best_spt_v]
         if best_ept_v <> 0 :
-            print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,grid[best_ept_v]["elev"])
+            print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,graph.node[best_ept_v]["elev"])
             epts = [best_ept_v]
 
         print "makeNetworkx, post-delete, pre-graph, final # grid points, after deletions: %s, current time: %s" % (graph.number_of_nodes(),time.time()-startMakeNetworkTime,)
