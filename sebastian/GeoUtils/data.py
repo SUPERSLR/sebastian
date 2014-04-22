@@ -132,8 +132,9 @@ class FormDicts:
             'A. Port Protector Parameters' : {
                     'PortID' : ['text','Port ID',['readonly'],'ID','You are not permitted to edit this item.'],
                     'Equation' : ['select','Equation',
-                                                {constants.Equations.BMASW : 'Ben and Merel\'s Attempt to Save the World',
-                                                         constants.Equations.SMCDD : 'SUPERSLR Minimum-Criteria Dike Design'},
+                                                {constants.Equations.KDBS : 'Version 2, SUPERSLR Minimum-Criteria Dike Design',
+                                                 constants.Equations.BMASW : 'Ben and Merel\'s Attempt to Save the World',
+                                                 constants.Equations.SMCDD : 'SUPERSLR Minimum-Criteria Dike Design'},
                                         'equation','Select the equation you wish to use for this model run.'],
                     'GridHeight' : ['text','Grid Height',[''],'height','degrees<br/>\nHeight of the elevation grid over which the model will run.'],
                     'GridWidth' : ['text','Grid Width',[''],'width','degrees<br/>\nWidth of the elevation grid over which the model will run.'],

@@ -739,17 +739,17 @@ if __name__ == "__main__":
         qv = cgi.FieldStorage()
 
         ge_key = qv["GE_KEY"].value
-        pid = qv["PortID"].value
+        portID = qv["PortID"].value
         w = qv["GridWidth"].value
         h = qv["GridHeight"].value
-        eq = qv["Equation"].value
+        simulation_equation = qv["Equation"].value
         elevdata = qv["ElevationData"].value
     except KeyError:
         ge_key = '14b9055d351595cc332c92eec2a06ebf'
-        pid = 63
+        portID = 63
         w = .25
         h = .25
-        eq = GeoUtils.constants.Equations.NTC_CS
+        simulation_equation = GeoUtils.constants.Equations.NTC_CS
         elevdata = GeoUtils.constants.ElevSrc.DEFAULT30SEC
 
 
@@ -767,7 +767,16 @@ if __name__ == "__main__":
         StartTime = time.time()
 
         # Run optimization to obtain shortest path
-        response,error = optimize(pid=pid,w=w,h=h,eq=eq,elevdata=elevdata)
+        response_dike,error_dike = optimize(pid=portID,w=w,h=h,eq=simulation_equation,elevdata=elevdata,run_type='networkx',current_structure='dike')
+        if error_dike == True:
+            # Output error message
+            output = GeoUtils.Interface.uniForm.fullErrorMsgGen(response_dike)
+            print output
+        response_berm,error_berm = optimize(pid=portID,w=w,h=h,eq=simulation_equation,elevdata=elevdata,run_type='networkx',current_structure='berm')
+        if error_berm == True:
+            # Output error message
+            output = GeoUtils.Interface.uniForm.fullErrorMsgGen(response_berm)
+            print output
 
         # Stop clock
         EndTime = time.time()
@@ -775,20 +784,34 @@ if __name__ == "__main__":
         # Elapsed time
         ElapsedTime = EndTime - StartTime
 
-        if error == True:
-            # Output error message
-            output = GeoUtils.Interface.uniForm.fullErrorMsgGen(response)
-            print output
-        else:
+        if error_berm != True and error_dike != True :
             # Unpack response from optimization
-            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response_dike
 
             # Update database
-            response,error = updateDB(ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,GeoUtils.constants.computeCenter(),h,w)
+            response,error = updateDB('dike','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w)
 
             if error:
                 # Output error message
-                msg = "<h3>Error:</h3>\n<p>There was an error updating the database. Please try again.</p>"
+                msg = "<h3>Error:</h3>\n<p>There was an error updating the database for dike calculation. Please try again.</p>"
+                output = GeoUtils.Interface.uniForm.fullErrorMsgGen(msg)
+                print output
+            else:
+                # Output success message
+                msg = '<h3>Success:</h3>\n<p>Please refresh your window to view the result.</p>\n'
+                msg += '<br/><p>Model runtime: %f seconds</p>\n' % (ElapsedTime,)
+                output = GeoUtils.Interface.uniForm.fullOkMsgGen(msg)
+                print output
+
+            # Unpack response from optimization
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response_berm
+
+            # Update database
+            response,error = updateDB('berm','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w)
+
+            if error:
+                # Output error message
+                msg = "<h3>Error:</h3>\n<p>There was an error updating the database for berm calculation. Please try again.</p>"
                 output = GeoUtils.Interface.uniForm.fullErrorMsgGen(msg)
                 print output
             else:
