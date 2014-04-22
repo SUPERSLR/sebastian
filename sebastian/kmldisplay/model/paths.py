@@ -95,4 +95,6 @@ if __name__ == "__main__":
     # Print content-type header
     print GeoUtils.Interface.ContentType("kml")
 
+    print
+
     print GeoUtils.Interface.StdKML(KMLout(bbox=bbox,ge_key=str(ge_key)))
