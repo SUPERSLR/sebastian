@@ -49,7 +49,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 
     import time
     startMakeNetworkTime = time.time()
-    print "portprotector %s %s, current time: %s, elapsed time: %s" % (run_type,current_structure,time.time(), time.time()-startMakeNetworkTime)
+    print "portprotector %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elev_data,time.time())
     # Query database for port details
     portq = "SELECT ID,name,latitude,longitude FROM portdata WHERE ID='%s'" % (pid,)
     portdata,portrowcount = DBhandle.query(portq)
@@ -85,12 +85,15 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
     # Query database for associated port or avoid polygons
     polyq = "SELECT ID,AsText(feature_geometry) FROM current_features WHERE "
     polyq += "(feature_type = 'Port Infrastructure Polygon' OR feature_type = '%s') " % (avoid_type,)
+    # Commented to force avoid of all port polygons
+    #polyq += "AND portID = '%s' " % (pid,)
     polyq += "AND MBRIntersects(%s,feature_geometry)" % (boundingPoly,)
     polydata,polyrowcount = DBhandle.query(polyq)
 
     # Query database for associated start or end port polygons
     seq = "SELECT ID,AsText(feature_geometry) FROM current_features WHERE "
     seq += "feature_type = 'Model StartEnd Polygon' "
+    seq += "AND portID = '%s' " % (pid,)
     seq += "AND MBRIntersects(%s,feature_geometry)" % (boundingPoly,)
     sedata,serowcount = DBhandle.query(seq)
 
@@ -233,8 +236,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                     "elev" : curPt.elev
                 }
 
-        print "make network finished grid, number of points: %s" % (len(grid))
-        print "makeNetwork, post-grid, pre-delete, current time: %s" % (time.time()-startMakeNetworkTime)
+        print "make network finished grid, number of points: %s, post-grid, pre-delete, elapsed time: %.3f" % (len(grid), time.time()-startMakeNetworkTime)
 
         # List of keys to delete because of avoid polygons or parameter exclusion
         del_keys = []
@@ -287,10 +289,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
             print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,grid[best_ept_v]["elev"])
             epts = [best_ept_v]
 
-
-
-        print "final number of grid points, after deletions: %s" % (len(grid))
-        print "makeNetwork, post-delete, pre-graph, current time: %s" % (time.time()-startMakeNetworkTime)
+        print "final number of grid points, after deletions: %s, post-delete, pre-graph, elapsed time: %.3f" % (len(grid),time.time()-startMakeNetworkTime,)
 
         # Create network based on vertices
         for vertex in grid:
@@ -324,10 +323,8 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 
                     # Get cost for edge
                     old_graph[vertex][neighbr] = eqns.get(eq)(dist["total"],avg_elev,params)
-#                    print 'old_graph[vertex][neighbr]'
-#                    print old_graph[vertex][neighbr]
 
-        print "makeNetwork, graph-complete, function-complete, current time: %s" % (time.time()-startMakeNetworkTime)
+        print "makeNetwork, graph-complete, function-complete, elapsed time: %.3f" % (time.time()-startMakeNetworkTime)
 
     elif run_type == 'networkx' :
         # Import graph handling tools
@@ -355,7 +352,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                                     metric=(distCurInit["horiz"],distCurInit["vertical"]),
                                     elev=curPt.elev)
 
-        print "makeNetworkx, post-grid, pre-delete, number of points: %s, current time: %s" % (graph.number_of_nodes(), time.time()-startMakeNetworkTime)
+        print "makeNetworkx, post-grid, pre-delete, number of points: %s, elapsed time: %.3f" % (graph.number_of_nodes(), time.time()-startMakeNetworkTime)
 
         # List of keys to delete because of avoid polygons or parameter exclusion
         del_keys = []
@@ -408,7 +405,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
             print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,graph.node[best_ept_v]["elev"])
             epts = [best_ept_v]
 
-        print "makeNetworkx, post-delete, pre-graph, final # grid points, after deletions: %s, current time: %s" % (graph.number_of_nodes(),time.time()-startMakeNetworkTime,)
+        print "makeNetworkx, post-delete, pre-graph, final # grid points, after deletions: %s, elapsed time: %.3f" % (graph.number_of_nodes(),time.time()-startMakeNetworkTime,)
 
         # Create network based on vertices
         for v in graph:
@@ -446,7 +443,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                     if not graph.has_edge(v,k):
                         graph.add_edge(v,k,weight=weight,vars=edge_vals)
 
-        print "makeNetworkx, graph-complete, number of edges: %s, function-complete, current time: %s" % (graph.number_of_edges(),time.time()-startMakeNetworkTime,)
+        print "makeNetworkx, graph-complete, number of edges: %s, function-complete, elapsed time: %.3f" % (graph.number_of_edges(),time.time()-startMakeNetworkTime,)
 
     else:
         # Return error message
@@ -465,7 +462,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 # h - grid height in degrees (Default: 1)
 # eq - design cost equation to use (Default: SUPERSLR Minimum-Criteria Dike Design)
 # elevdata - elevation data to use for grid (Default: 30-second SRTM30Plus grid)
-def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
+def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,bucket_low=-60.0,bucket_high=20.1):
 #def optimize(pid,w=1,h=1,eq=GeoUtils.constants.Equations.SMCDD,elevdata=GeoUtils.constants.ElevSrc.DEFAULT30SEC,run_type='networkx',current_structure='dike'):
     '''
     Run Port Protector Optimization
@@ -478,9 +475,12 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
         @param elevdata - elevation data to use for grid as constant in GeoUtils.constants.ElevSrc (default: 30-second SRTM30Plus)
 
     '''
-
+    import time
+    startOptimizeTime = time.time()
+    print "optimize %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startOptimizeTime)
     # Get grid
     response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata,run_type,current_structure)
+    print "optimize, post makeNetwork, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
     # If there was an error, return error and message
     if error == True:
@@ -488,11 +488,21 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
         # Function exits
         return errtxt,True
 
+
+    from array import array
     # Shortest path details variable holders
     path = []
     pts = []
     elev = []
     length = 0.0
+    bucket_size = (bucket_high - bucket_low) / number_of_buckets
+    bucket_range = ""
+    buckets = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    for init_depth in xrange (0, number_of_buckets, 1):
+        bucket_range += "%s: [%.2f <= x < %.2f], \n" % ((init_depth + 1), bucket_low + (init_depth * bucket_size), bucket_low + (((init_depth +1) * bucket_size)),)
+
+    tallest_section_depth = -9999.9
+    shortest_section_depth = 9999.9
 
     # Initialize volume variables
     dikeVol = 0.0
@@ -513,6 +523,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
 
     structure_height_above_msl = 0.0
 
+    print "optimize, initialized, running %s calculations, elapsed time: %.3f" % (run_type, time.time()-startOptimizeTime)
     if run_type == 'old' :
         # Import shortest path algorithm
         import dijkstra
@@ -522,6 +533,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
 
         # For each start point and end point
         optimalPaths = [ dijkstra.shortestPath(old_graph,start,end) for end in endpts for start in startpts ]
+        print "optimize, found %s possible paths, elapsed time: %.3f" % (len(optimalPaths), time.time()-startOptimizeTime)
 
         # Initialize minimum distance to infinity
         vol = float('inf')
@@ -536,6 +548,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
                 sp = possiblePath[0]
             else:
                 pass
+        print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
         try:
             prev = False
@@ -561,13 +574,28 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
 
                     structure_height_above_msl = old_graph[prev][v]["structure_height_above_msl"]
 
+                    current_section_elev = float(old_graph[prev][v]["elev"])
+                    current_section_length = float(old_graph[prev][v]["length"])
+                    current_section_cost = old_graph[prev][v]["cost"]
+                    elev.append(current_section_elev)
+                    if current_section_elev > tallest_section_depth :
+                        tallest_section_depth = current_section_elev
+                    if current_section_elev < shortest_section_depth :
+                        shortest_section_depth = current_section_elev
+                    current_elev_bucket = int(round((current_section_elev - bucket_low ) * 100.0 / bucket_size)) / 100
+                    if (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
+                        print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,old_graph[prev][v]["cost"],current_elev_bucket + 1,)
+                    else :
+                        buckets[current_elev_bucket] += current_section_length
+
                 # Add point details to paths
                 path.append(grid[v]["latlon"])
                 pts.append(grid[v]["metric"])
                 elev.append(float(grid[v]["elev"]))
+
                 # Set previous point to current point
                 prev = v
-
+            print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
         except TypeError:
             # Build error message
             msg = '<h3>Error:</h3>\n'
@@ -612,12 +640,14 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
                     vol += graph[short_path[pt]][short_path[pt+1]]['vars']['cost']
 
                 SPs[vol] = short_path
+        print "optimize, found %s possible paths, elapsed time: %.3f" % (len(SPs), time.time()-startOptimizeTime)
 
         # Find minimum volume
         minVol = min(SPs.keys())
 
         # Select shortest path based on minimum volume
         shortestPath = SPs[minVol]
+        print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
         # Calculate piece volumes and path lists
         for pt in range(0,len(shortestPath)):
@@ -640,9 +670,26 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
 
                 structure_height_above_msl = graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_height_above_msl"]
 
+                current_section_elev = float(graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["elev"])
+                current_section_length = float(graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["length"])
+                current_section_cost = float(graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["cost"])
+                elev.append(current_section_elev)
+
+                if current_section_elev > tallest_section_depth :
+                    tallest_section_depth = current_section_elev
+                if current_section_elev < shortest_section_depth :
+                    shortest_section_depth = current_section_elev
+                current_elev_bucket = int(round((current_section_elev - bucket_low ) * 100.0 / bucket_size)) / 100
+                if (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
+                    print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,current_section_cost,current_elev_bucket + 1,)
+                else :
+                    buckets[current_elev_bucket] += current_section_length
+
             path.append(graph.node[shortestPath[pt]]["latlon"])
             pts.append(graph.node[shortestPath[pt]]["metric"])
             elev.append(float(graph.node[shortestPath[pt]]["elev"]))
+        print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+
 
     else:
         # Return error message
@@ -652,17 +699,27 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure):
         # Function exits
         return errtxt,True
 
+    print "optimize, ready to show buckets, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+    print "buckets - number: %s, high: %s, low: %s, size: %s - actual elev range, high:%.2f, low:%.2f" % (number_of_buckets,bucket_high,bucket_low,bucket_size,tallest_section_depth,shortest_section_depth, )
+    bucket_values = ""
+    for init_depth in xrange (0, number_of_buckets, 1):
+        bucket_values += "%s: [%.2f],    \n" % ((init_depth + 1), buckets[init_depth],)
+    print bucket_range
+    print bucket_values
+    print "optimize, buckets displayed, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+
     # Average elevation along path
     avg_elev = sum(elev) / len(elev)
 
     # Prepare values used to update database
-    output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
+    output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,bucket_high,bucket_low,number_of_buckets,buckets[0],buckets[1],buckets[2],buckets[3],buckets[4],buckets[5],buckets[6],buckets[7],buckets[8],buckets[9],buckets[10],buckets[11],buckets[12],buckets[13],buckets[14],buckets[15],buckets[16],buckets[17],buckets[18],buckets[19],tallest_section_depth,shortest_section_depth)
+    print "optimize, output prepared, returning, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
     # Return output and no error
     return output,False
 
 # Update database
-def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,computeCenter,grid_height,grid_width):
+def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,eq,elevdata,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth):
     '''
     Update database with simulation result
 
@@ -686,6 +743,10 @@ def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,cor
         @param grid_width - width of grid used to calculate path
 
     '''
+    import time
+    startUpdateDBTime = time.time()
+    print "updateDB %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startUpdateDBTime)
+
     model_table = ''
     history_table = ''
     if current_structure == 'dike' :
@@ -700,30 +761,35 @@ def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,cor
     user = DBhandle.ConnUserName()
 
     # Delete old model run and insert into history
-    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width FROM %s WHERE ' % (model_table,)
+    selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth FROM %s WHERE ' % (model_table,)
     selq += 'portID=%s' % (pid)
     seldata,selrc = DBhandle.query(selq)
+    print "updateDB, previous run data selected, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     for r in seldata:
-        histq = "INSERT INTO %s (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) VALUES ('" % (history_table,)
-        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s')" % r
+        histq = "INSERT INTO %s (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth) VALUES ('" % (history_table,)
+        histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s','%(bucket_high)s','%(bucket_low)s','%(number_of_buckets)s','%(bucket_count_1)s','%(bucket_count_2)s','%(bucket_count_3)s','%(bucket_count_4)s','%(bucket_count_5)s','%(bucket_count_6)s','%(bucket_count_7)s','%(bucket_count_8)s','%(bucket_count_9)s','%(bucket_count_10)s','%(bucket_count_11)s','%(bucket_count_12)s','%(bucket_count_13)s','%(bucket_count_14)s','%(bucket_count_15)s','%(bucket_count_16)s','%(bucket_count_17)s','%(bucket_count_18)s','%(bucket_count_19)s','%(bucket_count_20)s','%(tallest_section_depth)s','%(shortest_section_depth)s')" % r
         histdata,histrc = DBhandle.query(histq)
+    print "updateDB, previous run data archived, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     delq = 'DELETE FROM %s WHERE portID=%s' % (model_table,pid,)
     deldata,delrc = DBhandle.query(delq)
+    print "updateDB, previous run data deleted from primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Create path for linestring creation
     ShortestPath = GeoUtils.Features.Path()
     ShortestPath.fromPointList(path)
+    print "updateDB, shortestPath run on features, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Insert shortest path and volume into database
     insertq = "INSERT INTO %s (portID,attribution,avg_elev,path_length,path_volume," % (model_table,) +\
             "dike_volume, core_volume, toe_volume, foundation_volume, armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl," +\
-            "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width) "
+            "path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth) "
     insertq += "VALUES ('%s','%s','%s','%s','%s'," % (pid,user,avg_elev,ShortestPath.length(),vol)
     insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
-    insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width)
+    insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth)
     insertdata,insertrc = DBhandle.query(insertq)
+    print "updateDB, new run inserted into primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Return success and no error
     return True,False
@@ -786,10 +852,10 @@ if __name__ == "__main__":
 
         if error_berm != True and error_dike != True :
             # Unpack response from optimization
-            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response_dike
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth = response_dike
 
             # Update database
-            response,error = updateDB('dike','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w)
+            response,error = updateDB('dike','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth)
 
             if error:
                 # Output error message
@@ -804,10 +870,10 @@ if __name__ == "__main__":
                 print output
 
             # Unpack response from optimization
-            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response_berm
+            path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth = response_berm
 
             # Update database
-            response,error = updateDB('berm','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w)
+            response,error = updateDB('berm','networkx',ge_key,portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,elevdata,GeoUtils.constants.computeCenter(),h,w,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth)
 
             if error:
                 # Output error message
