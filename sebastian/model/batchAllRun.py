@@ -36,8 +36,9 @@ if __name__ == "__main__":
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
     #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
     dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
-    #h_override = 0.20
-    #w_override = 0.17
+    #dataset_override = GeoUtils.constants.ElevSrc.USGS
+    #h_override = 1.4
+    #w_override = 0.9
     #run_type = 'networkx'
 
     simulation_equation = GeoUtils.constants.Equations.KDBS
@@ -105,7 +106,6 @@ if __name__ == "__main__":
     print 'Port berms to update:' + str(count_berm)
     print
 
-
     total_time = 0
     portResult = 'success'
     current_structure = 'dike'
@@ -153,7 +153,7 @@ if __name__ == "__main__":
                 start_time = time.time()
 
                 portResult = 'failed'
-                response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset,run_type,current_structure,number_of_buckets,bucket_low,bucket_high)
+                response,error = portprotector.optimize(portID,w,h,simulation_equation,dataset,run_type,current_structure,number_of_buckets,bucket_low,bucket_high)
                 portResult = 'success'
 
                 # Stop clock

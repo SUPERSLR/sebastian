@@ -43,9 +43,12 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
     '''
 
     avoid_type= 'Model Avoid Polygon'
+    max_elevation_parameter = 'max_elevation'
+    min_elevation_parameter = 'min_elevation'
     if current_structure == 'berm' :
         avoid_type= 'Berm Avoid Polygon'
-
+        max_elevation_parameter = 'max_elevation_berm'
+        min_elevation_parameter = 'min_elevation_berm'
 
     import time
     startMakeNetworkTime = time.time()
@@ -251,10 +254,11 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 
         # Add vertices excluded by parameters to delete list
         #   Current disqualifying parameters: max_elevation, min_elevation
-        del_keys.extend([ v for v in grid if grid[v]["elev"] > float(params['max_elevation_berm']) or grid[v]["elev"] < float(params['min_elevation_berm']) ])
+        del_keys.extend([ v for v in grid if grid[v]["elev"] > float(params[max_elevation_parameter]) or grid[v]["elev"] < float(params[min_elevation_parameter]) ])
 
         print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
         print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
+        print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
 
         # Delete listed keys from available vertices
         for v in del_keys:
@@ -367,10 +371,11 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 
         print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
         print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
+        print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
 
         # Add vertices excluded by parameters to delete list
         #   Current disqualifying parameters: max_elevation_berm, min_elevation_berm
-        del_keys.extend([ v for v in graph.nodes(data=False) if graph.node[v]["elev"] > float(params['max_elevation_berm']) or graph.node[v]["elev"] < float(params['min_elevation_berm']) ])
+        del_keys.extend([ v for v in graph.nodes(data=False) if graph.node[v]["elev"] > float(params[max_elevation_parameter]) or graph.node[v]["elev"] < float(params[min_elevation_parameter]) ])
 
         # Delete listed keys from available vertices
         for v in del_keys:

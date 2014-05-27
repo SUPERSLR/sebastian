@@ -252,7 +252,11 @@ alter table berm_model_history drop column aggregate_weight;
 alter table berm_model_history drop column riprap_weight;
 
 
-
+update portdata set grid_height=0.75, grid_width=0.95 where id=60;
+update portdata set grid_height=0.5, grid_width=0.65 where id=61;
+update portdata set grid_height=0.35, grid_width=0.75 where id=29;
+update portdata set grid_height=0.85, grid_width=0.95 where id=50;
+update portdata set grid_height=1.4, grid_width=1.8 where id=139;
 
 
 
