@@ -379,12 +379,11 @@ def dikeOrBermSection(length, elev, params):
     caisson_breakwater_min_height = 15.0
     caisson_breakwater_max_height = 60.0
 
-    structure_required = 0
+    elev_no_structure_needed = dwsel + freeboard_floodwall
+    no_structure_needed_optimization_cost = 0
 
-#    print 'elev'
-#    print elev
-    if havg_floodwall <= cantilever_floodwall_max_height :
-#        print "berm"
+    if havg_floodwall <= cantilever_floodwall_max_height and elev < elev_no_structure_needed  :
+        #print "berm"
         cantilever_floodwall_length = length #E10
         if havg_floodwall > cantilever_floodwall_min_height :
             cantilever_floodwall_height = havg_floodwall #E11
@@ -395,7 +394,7 @@ def dikeOrBermSection(length, elev, params):
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
     elif havg_breakwater > rubble_breakwater_min_havg and havg_breakwater <= rubble_breakwater_max_height :
-#        print "rubble mound breakwater"
+        #print "rubble mound breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = length #E12
@@ -406,7 +405,7 @@ def dikeOrBermSection(length, elev, params):
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
     elif havg_breakwater >= caisson_breakwater_min_havg and havg_breakwater <= caisson_breakwater_max_height :
-#        print "deep breakwater"
+        #print "deep breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = 0 #E12
@@ -414,7 +413,7 @@ def dikeOrBermSection(length, elev, params):
         caisson_breakwater_length = length #E14
         caisson_breakwater_height = havg_breakwater #E15
     elif havg_breakwater > caisson_breakwater_max_height :
-#        print "error, water too deep"
+        #print "error, water too deep"
         #TODO: how to return deep error?
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -424,9 +423,9 @@ def dikeOrBermSection(length, elev, params):
         caisson_breakwater_height = 0 #E15
     else :
         # Existing Grade (EG) is greater than Design Water Surface ELevation (DWSEL), no structure needed
- #       print "safe elevation, no structure needed"
-        #TODO: how to return deep error?
-        structure_required = 1
+        #print "safe elevation, no structure needed"
+        #TODO: verify cost is only a minimum optimization cost based on length
+        no_structure_needed_optimization_cost = length / 9999.0
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
         rubble_breakwater_length = 0 #E12
@@ -829,7 +828,7 @@ def dikeOrBermSection(length, elev, params):
                'concrete_volume': concrete,
                'structural_steel_weight': structural_steel,
                'structural_steel_volume': structural_steel_volume,
-               'structure_height_above_msl': dwsel + freeboard_breakwater,
+               'structure_height_above_msl': elev_no_structure_needed,
 
                'toeVol': toeVolume,
                'elev': elev,
@@ -840,7 +839,7 @@ def dikeOrBermSection(length, elev, params):
                'armorVol' : armorVolume,
 
                # cost for optimization is total volume of material in m^3
-               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + structural_steel_volume + structure_required
+               'cost' : sand + gravel + quarry_run_stone + large_riprap + small_riprap + concrete + structural_steel_volume + no_structure_needed_optimization_cost
             }
 
 

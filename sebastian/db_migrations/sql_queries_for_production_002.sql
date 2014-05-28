@@ -3,7 +3,6 @@
 
 insert into modelparameters (eqn , eqn_cit_id , sea_level_rise , sea_level_rise_cit_id , freeboard , freeboard_cit_id , design_wave_height , design_wave_height_cit_id , storm_surge , storm_surge_cit_id , mean_high_high_tide , mean_high_high_tide_cit_id , mean_low_low_tide , mean_low_low_tide_cit_id , dike_flat_top , dike_flat_top_cit_id , foundation_height , foundation_height_cit_id , toe_height , toe_height_cit_id , outer_toe_slope , outer_toe_slope_cit_id , inner_toe_slope , inner_toe_slope_cit_id , outer_core_slope , outer_core_slope_cit_id , inner_core_slope , inner_core_slope_cit_id , core_flat_top , core_flat_top_cit_id , core_height , core_height_cit_id , outer_dike_slope , outer_dike_slope_cit_id , inner_dike_slope , inner_dike_slope_cit_id , armor_depth , armor_depth_cit_id , max_elevation , max_elevation_cit_id , min_elevation , min_elevation_cit_id, max_elevation_berm , max_elevation_berm_cit_id , min_elevation_berm , min_elevation_berm_cit_id) values ('KDBS' , 0 , 2 , 0 , 0.5 , 0 , 0.5 , 0 , 0.5 , 0 , 1.5 , 0 , -1.5 , 0 , 10 , 0 , 2 , 0 , 3 , 0 , 10 , 0 , 1 , 0 , 5 , 0 , 3 , 0 , 6 , 0 , 3 , 0 , 5 , 0 , 3 , 0 , 2 , 0 , 40 , 0 , -60 , 0, 40 , 0 , -60 , 0);
 
-
 /* adding fields for bucketing */
 alter table portprotector add column bucket_count_20 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
 alter table portprotector add column bucket_count_19 DOUBLE NOT NULL DEFAULT 0 after armor_volume;
@@ -204,6 +203,16 @@ alter table portprotector_history add column structure_height_above_msl DOUBLE N
 alter table berm_model add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
 alter table berm_model_history add column structure_height_above_msl DOUBLE NOT NULL DEFAULT -1 after armor_volume;
 
+alter table portprotector add column tallest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table portprotector_history add column tallest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model add column tallest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model_history add column tallest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+
+alter table portprotector add column shortest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table portprotector_history add column shortest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model add column shortest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+alter table berm_model_history add column shortest_section_depth DOUBLE NOT NULL DEFAULT -1 after armor_volume;
+
 
 
 alter table portprotector drop column cement_volume;
@@ -243,7 +252,11 @@ alter table berm_model_history drop column aggregate_weight;
 alter table berm_model_history drop column riprap_weight;
 
 
-
+update portdata set grid_height=0.75, grid_width=0.95 where id=60;
+update portdata set grid_height=0.5, grid_width=0.65 where id=61;
+update portdata set grid_height=0.35, grid_width=0.75 where id=29;
+update portdata set grid_height=0.85, grid_width=0.95 where id=50;
+update portdata set grid_height=1.4, grid_width=1.8 where id=139;
 
 
 

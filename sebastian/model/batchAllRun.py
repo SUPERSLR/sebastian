@@ -17,6 +17,10 @@ if __name__ == "__main__":
 
     calc_to_run = ''
 
+    number_of_buckets = 5
+    bucket_low = -60
+    bucket_high = 20.1
+
     # Query building parameters
     port_table = 'portdata'
     q_dike = ''
@@ -32,8 +36,9 @@ if __name__ == "__main__":
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
     #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
     dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
-    #h_override = 0.20
-    #w_override = 0.17
+    #dataset_override = GeoUtils.constants.ElevSrc.USGS
+    #h_override = 1.4
+    #w_override = 0.9
     #run_type = 'networkx'
 
     simulation_equation = GeoUtils.constants.Equations.KDBS
@@ -42,13 +47,17 @@ if __name__ == "__main__":
     #simulation_equation = GeoUtils.constants.Equations.SMCDD
 
     #Args are (in order) dike/berm/both old/x [optional] port number
-    if len(sys.argv) < 3 or len(sys.argv) > 4 or not (sys.argv[1] == 'both' or sys.argv[1] == 'dike' or sys.argv[1] == 'berm') :
+    if len(sys.argv) < 3 or len(sys.argv) > 7 or not (sys.argv[1] == 'both' or sys.argv[1] == 'dike' or sys.argv[1] == 'berm') :
 #or (len(sys.argv) == 4 and not (sys.argv[3] == '10report' or isinstance(sys.argv[3],int)))
 
-        print "usage: batchAllRun.py dike/berm/both old/x port_number/10report[optional]"
+        print "usage: batchAllRun.py dike/berm/both old/x port_number/10report[optional] number_of_buckets[optional int] bucket_high[optional float] bucket_low[optional float]"
+
         print "Parameter 1: \"dike\" runs just dike calculations, \"berm\" just berm calculations, and \"both\",\n unsurprisingly, runs both (all dike followed by all berm)."
         print "Parameter 2: This specifies which calculation model to use.  \"x\" uses networkx, which is faster\n and better, but may not be installed on some machines.  \"old\" uses the original manually entered functions."
-        print "Parameter 3: If this is a number, the simulation will be used for a single port of that number.\n  \"10report\" will run it for the selected 10 ports for the first paper.  If empty all ports will run."
+        print "Parameter 3: If this is a number, the simulation will be used for a single port of that number.\n  \"10report\" will run it for the selected 10 ports for the first paper.  If \"all\" or empty all ports will run."
+        print "Parameter 4: Optional (default 5), integer, the number of buckets (1-20) to use."
+        print "Parameter 5: Optional (default -60.0), float, the lowest elevation to bucket from."
+        print "Parameter 6: Optional (default 20.1), float, this elev and higher will not be bucketed."
         exit()
     else :
         if sys.argv[2] == 'x' :
@@ -61,17 +70,27 @@ if __name__ == "__main__":
 
     q_base_front = 'SELECT DISTINCT ID,name,grid_height,grid_width,elev_data FROM '
 
-    if len(sys.argv) == 4 :
+    if len(sys.argv) >= 4 :
         if sys.argv[3] == '10report' :
             #all US10 one at a time
             print "10 report ports: 112, 114, 116, 117, 125, 127, 131, 135, 141, 180"
             q_base_back = ' where id = 112 or id = 114 or id = 116 or id = 117 or id = 125 or id = 127 or id = 131 or id = 135 or id = 141 or id = 180 order by id desc'
             q_ports = q_base_front + port_table + q_base_back
+        elif sys.argv[3] == 'all' :
+            print "all ports"
+            q_ports = q_base_front + port_table
         else :
             port_number = int(sys.argv[3])
             print "port_number %s" % (port_number, )
             q_base_back = ' where id = %s' % (port_number, )
             q_ports = q_base_front + port_table + q_base_back
+        if len(sys.argv) >= 5 :
+            number_of_buckets = int(sys.argv[4])
+        if len(sys.argv) >= 6 :
+            bucket_low = float(sys.argv[5])
+        if len(sys.argv) == 7 :
+            bucket_high = float(sys.argv[6])
+
     elif len(sys.argv) == 3 :
         print "all ports"
         q_ports = q_base_front + port_table
@@ -86,7 +105,6 @@ if __name__ == "__main__":
     print
     print 'Port berms to update:' + str(count_berm)
     print
-
 
     total_time = 0
     portResult = 'success'
@@ -135,7 +153,7 @@ if __name__ == "__main__":
                 start_time = time.time()
 
                 portResult = 'failed'
-                response,error = portprotector.optimize(portID,h,w,simulation_equation,dataset,run_type,current_structure)
+                response,error = portprotector.optimize(portID,w,h,simulation_equation,dataset,run_type,current_structure,number_of_buckets,bucket_low,bucket_high)
                 portResult = 'success'
 
                 # Stop clock
@@ -155,16 +173,20 @@ if __name__ == "__main__":
                 else:
                     # Unpack response from optimization
                     print 'Success'
-                    path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl = response
+                    path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth = response
 
                     # Update database
                     #22938b6006b66b4eecd09f3b38c8c961 #Keith key development
-                    response,error = portprotector.updateDB(current_structure,run_type,'22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w)
+                    response,error = portprotector.updateDB(current_structure,run_type,'22938b6006b66b4eecd09f3b38c8c961',portID,path,avg_elev,vol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,simulation_equation,dataset,GeoUtils.constants.computeCenter(),h,w,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth)
 
                     #print "attribution: %s" % ("Keith Mosher",)
                     print "equation: %s" % (simulation_equation,)
+                    print "portid (again): %s" % (portID,)
                     print "structure_height_above_msl: %s" % (structure_height_above_msl,)
                     print "avg_elev: %s" % (avg_elev,)
+                    print "tallest_section_depth: %s" % (tallest_section_depth,)
+                    print "shortest_section_depth: %s" % (shortest_section_depth,)
+
                     # Create path for linestring creation
                     ShortestPath = GeoUtils.Features.Path()
                     ShortestPath.fromPointList(path)
