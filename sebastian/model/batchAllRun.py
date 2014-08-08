@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
 
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #dataset_override = GeoUtils.constants.ElevSrc.USGS
     #h_override = 1.4
     #w_override = 0.9
