@@ -259,4 +259,4 @@ update portdata set grid_height=0.85, grid_width=0.95 where id=50;
 update portdata set grid_height=1.4, grid_width=1.8 where id=139;
 
 
-
+update modelparameters set eqn='WBMAS' where id=2;

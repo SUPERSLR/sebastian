@@ -31,6 +31,22 @@ def buildKML(ge_key=""):
         kml += '</Link>\n'
         kml += '</NetworkLink>\n'
 
+        # Link to NOAA_ASTER Elevation Data
+        kml += '<NetworkLink id="USGSTopoBathyLink">\n'
+        kml += '<name>NOAA/ASTER 30m Elevation Data</name>\n'
+        kml += '<visibility>0</visibility>\n'
+        kml += '<open>0</open>\n'
+        kml += '<styleUrl>%s/kml_styles.py#infoNoIcon</styleUrl>' % (BASE_URL,)
+        kml += '<description>Data combined NOAA harbor charts and ASTER high res elevation.</description>\n'
+        kml += '<Link>\n'
+        kml += '<href>%s/kmldisplay/topobathy/noaa_aster30m.py</href>\n' % (BASE_URL,)
+        kml += '<viewRefreshMode>onStop</viewRefreshMode>\n'
+        kml += '<viewRefreshTime>3</viewRefreshTime>\n'
+        kml += '<viewBoundScale>1.2</viewBoundScale>\n'
+        kml += '<httpQuery>GE_KEY=%s</httpQuery>' % (ge_key,)
+        kml += '</Link>\n'
+        kml += '</NetworkLink>\n'
+
         # Link to USGS Elevation Data
         kml += '<NetworkLink id="USGSTopoBathyLink">\n'
         kml += '<name>USGS Elevation Data</name>\n'

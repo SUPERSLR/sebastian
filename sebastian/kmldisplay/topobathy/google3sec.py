@@ -23,8 +23,8 @@ DBhandle.connect('uws_maps')
 def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
         # Database table information
         table = 'elev_data'
-        #dataset = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-        dataset = GeoUtils.constants.ElevSrc.NOAAASTER30M
+        dataset = GeoUtils.constants.ElevSrc.GOOGLE3SEC
+        #dataset = GeoUtils.constants.ElevSrc.NOAAASTER30M
 
         # Get BBOX boundaries
         west = float(bbox[0])

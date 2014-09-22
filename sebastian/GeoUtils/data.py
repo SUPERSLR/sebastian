@@ -133,12 +133,12 @@ class FormDicts:
                     'PortID' : ['text','Port ID',['readonly'],'ID','You are not permitted to edit this item.'],
                     'Equation' : ['select','Equation',
                                                 {constants.Equations.KDBS : 'Version 2, SUPERSLR Minimum-Criteria Dike Design',
-                                                 constants.Equations.BMASW : 'Ben and Merel\'s Attempt to Save the World',
+                                                 constants.Equations.WBMAS : 'Ben and Merel\'s Attempt to Save the World',
                                                  constants.Equations.SMCDD : 'SUPERSLR Minimum-Criteria Dike Design'},
                                         'equation','Select the equation you wish to use for this model run.'],
                     'GridHeight' : ['text','Grid Height',[''],'height','degrees<br/>\nHeight of the elevation grid over which the model will run.'],
                     'GridWidth' : ['text','Grid Width',[''],'width','degrees<br/>\nWidth of the elevation grid over which the model will run.'],
-                    'ElevationData' : ['select','Elevation Grid',{'default_30sec' : 'Default - UCSD - 30 arc-second' , 'usgs_3sec' : 'USGS - 3 arc-second' , 'google_web_service' : 'Google Elevation Data API' },'elev_data','Select the elevation grid you wish to use for this model run.']
+                    'ElevationData' : ['select','Elevation Grid',{'default_30sec' : 'Default - UCSD - 30 arc-second' , 'usgs_3sec' : 'USGS - 3 arc-second' , 'noaa_aster_30m' : 'NOAA-ASTER 30m (very big!)', 'google_web_service' : 'Google Elevation Data API' },'elev_data','Select the elevation grid you wish to use for this model run.']
                 },
             'zbuttons' : {
                     'Submit' : ['submit','Run Model',[''],'','']

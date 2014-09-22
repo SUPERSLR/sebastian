@@ -6,17 +6,17 @@
 class Equations:
         KDBS  = "KDBS"
         KMB2  = "KMB2"
-        BMASW = "BMASW"
+        WBMAS = "WBMAS"
         SMCDD = "SMCDD"
 
 class ElevSrc:
-        GOOGLE = "google_web_service"
         DEFAULT30SEC = "default_30sec"
+        NOAAASTER30M = "noaa_aster_30m"
         USGS = "usgs_3sec"
+        GOOGLE = "google_web_service"
         GOOGLE30SEC = "google_web_service_30sec"
         GOOGLE3SEC = "google_web_service_3sec"
         GOOGLEP3SEC = "google_web_service_point3sec"
-        NOAAASTER30M = "noaa_aster_30m"
 
 class RegionSrc:
         AFRICA = "africa"
@@ -28,8 +28,9 @@ class RegionSrc:
         SOUTHAMERICA = "south_america"
 
 ElevSize = {
-        ElevSrc.GOOGLE : 0.0008333333333,
         ElevSrc.DEFAULT30SEC : 0.0083333333333,
+        ElevSrc.NOAAASTER30M : 0.0002777,
+        ElevSrc.GOOGLE : 0.0008333333333,
         ElevSrc.USGS : 0.0008333333333,
       #  ElevSrc.GOOGLE30SEC : 0.0083333333333,
         ElevSrc.GOOGLE30SEC : 0.001666,
@@ -39,7 +40,6 @@ ElevSize = {
       #  ElevSrc.GOOGLEP3SEC : 0.00345,
       #  ElevSrc.GOOGLEP3SEC : 0.0083333333333,
         ElevSrc.GOOGLEP3SEC : 0.0008333,
-        ElevSrc.NOAAASTER30M : 0.0002777,
       #  ElevSrc.NOAAASTER30M : 0.0011108,
     }
 
@@ -55,7 +55,7 @@ ElevRegions = {
 
 contactEmail = 'info@seaports2100.org'
 AmazonExternalHost = 'ec2-184-72-176-76.compute-1.amazonaws.com'
-DreamhostHost = 'local.seaports2100.org'
+DreamhostHost = 'development.seaports2100.org:33333'
 BASE_URL = 'http://%s/sebastian' % (DreamhostHost,)
 AmazonDBHost = 'localhost'
 DreamhostDBHost = 'localhost'

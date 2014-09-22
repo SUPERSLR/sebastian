@@ -37,13 +37,13 @@ if __name__ == "__main__":
     dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
     #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #dataset_override = GeoUtils.constants.ElevSrc.USGS
-    #h_override = 1.4
-    #w_override = 0.9
+    #h_override = 0.50
+    #w_override = 0.50
     #run_type = 'networkx'
 
     simulation_equation = GeoUtils.constants.Equations.KDBS
     #simulation_equation = GeoUtils.constants.Equations.KMB2
-    #simulation_equation = GeoUtils.constants.Equations.BMASW
+    #simulation_equation = GeoUtils.constants.Equations.WBMAS
     #simulation_equation = GeoUtils.constants.Equations.SMCDD
 
     #Args are (in order) dike/berm/both old/x [optional] port number

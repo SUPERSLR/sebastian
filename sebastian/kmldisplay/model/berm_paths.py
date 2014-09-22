@@ -40,7 +40,7 @@ def KMLout(bbox=["-74.4","40.4","-73.5","40.9"],ge_key=""):
     if rowcount > 0:
         # Folder contents
         import operator
-        FolderContents = reduce(operator.concat,[GeoUtils.Interface.genKML.InterfacePath(ge_key,r) for r in dbdata])
+        FolderContents = reduce(operator.concat,[GeoUtils.Interface.genKML.InterfaceBerm(ge_key,r) for r in dbdata])
     else:
         FolderContents = ''
 

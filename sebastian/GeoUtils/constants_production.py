@@ -4,7 +4,7 @@
 # Constants used throughout the program
 
 class Equations:
-	BMASW = "BMASW"
+	WBMAS = "WBMAS"
 	SMCDD = "SMCDD"
 
 class ElevSrc:

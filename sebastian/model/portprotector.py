@@ -29,7 +29,7 @@ elevDBhandle.connect('uws_maps')
 
 
 def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
-#def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.BMASW,elev_data=GeoUtils.constants.ElevSrc.DEFAULT30SEC,run_type='networkx',current_structure='dike'):
+#def makeNetwork(pid,w=1,h=1,eq=GeoUtils.constants.Equations.WBMAS,elev_data=GeoUtils.constants.ElevSrc.DEFAULT30SEC,run_type='networkx',current_structure='dike'):
     '''
     Create network from elevation grid
 
@@ -159,7 +159,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
     eqns = {
             GeoUtils.constants.Equations.KDBS : designs.dikeOrBermSection,
             GeoUtils.constants.Equations.KMB2 : designs.multiDikeSingleBermCombo,
-            GeoUtils.constants.Equations.BMASW : designs.pieceByPiece,
+            GeoUtils.constants.Equations.WBMAS : designs.pieceByPiece,
             GeoUtils.constants.Equations.SMCDD : designs.SMCDD
         }
 
