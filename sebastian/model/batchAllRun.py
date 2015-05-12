@@ -34,11 +34,13 @@ if __name__ == "__main__":
 
 
     #dataset_override = GeoUtils.constants.ElevSrc.GOOGLE3SEC
-    dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
-    #dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
+    #dataset_override = GeoUtils.constants.ElevSrc.NOAAASTER30M
+    dataset_override = GeoUtils.constants.ElevSrc.DEFAULT30SEC
     #dataset_override = GeoUtils.constants.ElevSrc.USGS
     #h_override = 0.50
     #w_override = 0.50
+    h_override = 0.40
+    w_override = 0.40
     #run_type = 'networkx'
 
     simulation_equation = GeoUtils.constants.Equations.KDBS
