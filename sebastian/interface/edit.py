@@ -23,10 +23,6 @@ DBhandle.connect('uws_ge')
 # edit - permission to edit, 1/0 -> yes/no (default: 0)
 def formGen(db,fields,type,id=0,ge_key="",edit=0):
         # Query database
-        print '<br/>000 db<br/>'
-        print db
-        print '<br/>0001 db[query]<br/>'
-        print db['query']
         dbdata,rowcount = DBhandle.query(db['query'])
 
         # If more than one row or no rows returned, raise error
@@ -72,8 +68,6 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
         fsk.sort()
 
         for set in fsk:
-                print '111<br/>'
-                print set
                 if set == 'zbuttons':
                         # If no permission to edit, display error message instead of submit button
                         if edit == 0:
@@ -87,8 +81,6 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
                         else:
                                 output += '<div class="buttonHolder">\n'
                                 for button in fields[set]:
-                                        print '222<br/>'
-                                        print button
                                         output += fieldGen.get('button')(id=button,type=fields[set][button][0],label=fields[set][button][1])
                                 output += '</div>\n'
                 elif set == 'zhidden':
@@ -109,16 +101,6 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
 
                         # For each field in set,
                         for f,o in fields[set].iteritems():
-                                print '<br/>333 f<br/>'
-                                print f
-                                print '<br/>444 o<br/>'
-                                print o
-                                print '<br/>4441 o[3]<br/>'
-                                print o[3]
-                                print '<br/>4442 r<br/>'
-                                print r
-                                print '<br/>4443 r[o[3]]<br/>'
-                                print r[o[3]]
                                 # If geometry specified, assume new geometry entry and set to blank
                                 if str(o[3]) == 'feature_geometry' or str(o[3]) == '':
                                         value = ''
@@ -157,8 +139,6 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
                                                 }
                                         else:
                                                 e = editdata[0]
-                                                print '<br/>555 e<br/>'
-                                                print e
 
                                         # Set hint
                                         hint = o[4] + '\n<br/>\n'
@@ -168,8 +148,6 @@ def formGen(db,fields,type,id=0,ge_key="",edit=0):
 
                                 # Add formatted field to output
                                 output += fieldGen.get(o[0])(options=o[2],id=f,label=o[1],value=value,hint=hint)
-                                print '<br/>666 value<br/>'
-                                print value
 
                         # Close fieldset
                         output += '</fieldset>\n'
@@ -240,15 +218,6 @@ if __name__ == "__main__":
 
 
         print GeoUtils.Interface.StdHTMLHeader(GeoUtils.Interface.uniForm.HTMLHeaderInfo())
-        print "<br/>Debug Edit 01</br>"
-        print id
-        print formQuery
-        print db
-        print type
-        print formFields
-        print "<br/>Debug Edit 02</br>"
-        print formFields.get(type)
-        print "<br/>Debug Edit 03</br>"
         try:
                 print formGen(db=db,fields=formFields.get(type),type=type,id=id,ge_key=ge_key,edit=edit)
         except:

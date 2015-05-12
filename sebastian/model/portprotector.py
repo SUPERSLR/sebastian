@@ -52,7 +52,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
 
     import time
     startMakeNetworkTime = time.time()
-    print "portprotector %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elev_data,time.time())
+    ###print "portprotector %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elev_data,time.time())
     # Query database for port details
     portq = "SELECT ID,name,latitude,longitude FROM portdata WHERE ID='%s'" % (pid,)
     portdata,portrowcount = DBhandle.query(portq)
@@ -79,8 +79,8 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
     north = float(port_lat) + float(h) / 2
     south = float(port_lat) - float(h) / 2
 
-    print "Grid info: latitude: %s, longitude: %s, h: %s, w: %s, dataset: %s" % (port_lat,port_lon,h,w,elev_data,)
-    print "Bounding west: %s, east: %s, north %s, south %s" % (west,east,north,south,)
+    ###print "Grid info: latitude: %s, longitude: %s, h: %s, w: %s, dataset: %s" % (port_lat,port_lon,h,w,elev_data,)
+    ###print "Bounding west: %s, east: %s, north %s, south %s" % (west,east,north,south,)
 
     # Create bounding polygon syntax for SQL
     boundingPoly = "PolyFromText('%s')" % (GeoUtils.makeBoundingPolygon(north,south,east,west),)
@@ -158,7 +158,6 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
     # Dictionary of possible cross-section equations
     eqns = {
             GeoUtils.constants.Equations.KDBS : designs.dikeOrBermSection,
-            GeoUtils.constants.Equations.KMB2 : designs.multiDikeSingleBermCombo,
             GeoUtils.constants.Equations.WBMAS : designs.pieceByPiece,
             GeoUtils.constants.Equations.SMCDD : designs.SMCDD
         }
@@ -239,7 +238,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                     "elev" : curPt.elev
                 }
 
-        print "make network finished grid, number of points: %s, post-grid, pre-delete, elapsed time: %.3f" % (len(grid), time.time()-startMakeNetworkTime)
+        ###print "make network finished grid, number of points: %s, post-grid, pre-delete, elapsed time: %.3f" % (len(grid), time.time()-startMakeNetworkTime)
 
         # List of keys to delete because of avoid polygons or parameter exclusion
         del_keys = []
@@ -256,9 +255,9 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
         #   Current disqualifying parameters: max_elevation, min_elevation
         del_keys.extend([ v for v in grid if grid[v]["elev"] > float(params[max_elevation_parameter]) or grid[v]["elev"] < float(params[min_elevation_parameter]) ])
 
-        print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
-        print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
-        print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
+        ###print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
+        ###print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
+        ###print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
 
         # Delete listed keys from available vertices
         for v in del_keys:
@@ -287,13 +286,13 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                 best_ept_v = v
 
         if best_spt_v <> 0 :
-            print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,grid[best_spt_v]["elev"])
+            ###print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,grid[best_spt_v]["elev"])
             spts = [best_spt_v]
         if best_ept_v <> 0 :
-            print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,grid[best_ept_v]["elev"])
+            ###print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,grid[best_ept_v]["elev"])
             epts = [best_ept_v]
 
-        print "final number of grid points, after deletions: %s, post-delete, pre-graph, elapsed time: %.3f" % (len(grid),time.time()-startMakeNetworkTime,)
+        ###print "final number of grid points, after deletions: %s, post-delete, pre-graph, elapsed time: %.3f" % (len(grid),time.time()-startMakeNetworkTime,)
 
         # Create network based on vertices
         for vertex in grid:
@@ -328,7 +327,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                     # Get cost for edge
                     old_graph[vertex][neighbr] = eqns.get(eq)(dist["total"],avg_elev,params)
 
-        print "makeNetwork, graph-complete, function-complete, elapsed time: %.3f" % (time.time()-startMakeNetworkTime)
+        ###print "makeNetwork, graph-complete, function-complete, elapsed time: %.3f" % (time.time()-startMakeNetworkTime)
 
     elif run_type == 'networkx' :
         # Import graph handling tools
@@ -356,7 +355,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                                     metric=(distCurInit["horiz"],distCurInit["vertical"]),
                                     elev=curPt.elev)
 
-        print "makeNetworkx, post-grid, pre-delete, number of points: %s, elapsed time: %.3f" % (graph.number_of_nodes(), time.time()-startMakeNetworkTime)
+        ###print "makeNetworkx, post-grid, pre-delete, number of points: %s, elapsed time: %.3f" % (graph.number_of_nodes(), time.time()-startMakeNetworkTime)
 
         # List of keys to delete because of avoid polygons or parameter exclusion
         del_keys = []
@@ -369,9 +368,9 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                 poly.fromMySQL_polygon(polygon['AsText(feature_geometry)'])
                 del_keys.extend([ v for v in graph.nodes(data=False) if poly.containsPoint(GeoUtils.Features.Point(x=graph.node[v]["latlon"][0],y=graph.node[v]["latlon"][1])) ])
 
-        print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
-        print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
-        print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
+        ###print "dike min/max elevation: %s / %s" % (params['min_elevation'],params['max_elevation'])
+        ###print "berm min/max elevation: %s / %s" % (params['min_elevation_berm'], params['max_elevation_berm'])
+        ###print "current parameters: %s / %s" % (min_elevation_parameter, max_elevation_parameter,)
 
         # Add vertices excluded by parameters to delete list
         #   Current disqualifying parameters: max_elevation_berm, min_elevation_berm
@@ -404,13 +403,13 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                 best_ept_v = v
 
         if best_spt_v <> 0 :
-            print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,graph.node[best_spt_v]["elev"])
+            ###print "spts count: %s, pre-selecting %s, elev: %s" % (len_spts,best_spt_v,graph.node[best_spt_v]["elev"])
             spts = [best_spt_v]
         if best_ept_v <> 0 :
-            print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,graph.node[best_ept_v]["elev"])
+            ###print "epts count: %s, pre-selecting %s, elev: %s" % (len_epts,best_ept_v,graph.node[best_ept_v]["elev"])
             epts = [best_ept_v]
 
-        print "makeNetworkx, post-delete, pre-graph, final # grid points, after deletions: %s, elapsed time: %.3f" % (graph.number_of_nodes(),time.time()-startMakeNetworkTime,)
+        ###print "makeNetworkx, post-delete, pre-graph, final # grid points, after deletions: %s, elapsed time: %.3f" % (graph.number_of_nodes(),time.time()-startMakeNetworkTime,)
 
         # Create network based on vertices
         for v in graph:
@@ -448,7 +447,7 @@ def makeNetwork(pid,w,h,eq,elev_data,run_type,current_structure):
                     if not graph.has_edge(v,k):
                         graph.add_edge(v,k,weight=weight,vars=edge_vals)
 
-        print "makeNetworkx, graph-complete, number of edges: %s, function-complete, elapsed time: %.3f" % (graph.number_of_edges(),time.time()-startMakeNetworkTime,)
+        ###print "makeNetworkx, graph-complete, number of edges: %s, function-complete, elapsed time: %.3f" % (graph.number_of_edges(),time.time()-startMakeNetworkTime,)
 
     else:
         # Return error message
@@ -482,10 +481,10 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
     '''
     import time
     startOptimizeTime = time.time()
-    print "optimize %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startOptimizeTime)
+    ###print "optimize %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startOptimizeTime)
     # Get grid
     response,error = makeNetwork(int(pid),float(w),float(h),eq,elevdata,run_type,current_structure)
-    print "optimize, post makeNetwork, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+    ###print "optimize, post makeNetwork, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
     # If there was an error, return error and message
     if error == True:
@@ -528,7 +527,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
 
     structure_height_above_msl = 0.0
 
-    print "optimize, initialized, running %s calculations, elapsed time: %.3f" % (run_type, time.time()-startOptimizeTime)
+    ###print "optimize, initialized, running %s calculations, elapsed time: %.3f" % (run_type, time.time()-startOptimizeTime)
     if run_type == 'old' :
         # Import shortest path algorithm
         import dijkstra
@@ -538,7 +537,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
 
         # For each start point and end point
         optimalPaths = [ dijkstra.shortestPath(old_graph,start,end) for end in endpts for start in startpts ]
-        print "optimize, found %s possible paths, elapsed time: %.3f" % (len(optimalPaths), time.time()-startOptimizeTime)
+        ###print "optimize, found %s possible paths, elapsed time: %.3f" % (len(optimalPaths), time.time()-startOptimizeTime)
 
         # Initialize minimum distance to infinity
         vol = float('inf')
@@ -553,7 +552,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                 sp = possiblePath[0]
             else:
                 pass
-        print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+        ###print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
         try:
             prev = False
@@ -588,10 +587,10 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                     if current_section_elev < shortest_section_depth :
                         shortest_section_depth = current_section_elev
                     current_elev_bucket = int(round((current_section_elev - bucket_low ) * 100.0 / bucket_size)) / 100
-                    if (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
-                        print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,old_graph[prev][v]["cost"],current_elev_bucket + 1,)
-                    else :
+                    if not (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
                         buckets[current_elev_bucket] += current_section_length
+                    ###else :
+                        ###print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,old_graph[prev][v]["cost"],current_elev_bucket + 1,)
 
                 # Add point details to paths
                 path.append(grid[v]["latlon"])
@@ -600,7 +599,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
 
                 # Set previous point to current point
                 prev = v
-            print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+            ###print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
         except TypeError:
             # Build error message
             msg = '<h3>Error:</h3>\n'
@@ -645,14 +644,14 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                     vol += graph[short_path[pt]][short_path[pt+1]]['vars']['cost']
 
                 SPs[vol] = short_path
-        print "optimize, found %s possible paths, elapsed time: %.3f" % (len(SPs), time.time()-startOptimizeTime)
+        ###print "optimize, found %s possible paths, elapsed time: %.3f" % (len(SPs), time.time()-startOptimizeTime)
 
         # Find minimum volume
         minVol = min(SPs.keys())
 
         # Select shortest path based on minimum volume
         shortestPath = SPs[minVol]
-        print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+        ###print "optimize, path volumes compared, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
         # Calculate piece volumes and path lists
         for pt in range(0,len(shortestPath)):
@@ -685,15 +684,15 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                 if current_section_elev < shortest_section_depth :
                     shortest_section_depth = current_section_elev
                 current_elev_bucket = int(round((current_section_elev - bucket_low ) * 100.0 / bucket_size)) / 100
-                if (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
-                    print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,current_section_cost,current_elev_bucket + 1,)
-                else :
+                if not (current_elev_bucket >= number_of_buckets or current_elev_bucket < 0):
                     buckets[current_elev_bucket] += current_section_length
+                ###else :
+                    ###print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,current_section_cost,current_elev_bucket + 1,)
 
             path.append(graph.node[shortestPath[pt]]["latlon"])
             pts.append(graph.node[shortestPath[pt]]["metric"])
             elev.append(float(graph.node[shortestPath[pt]]["elev"]))
-        print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+        ###print "optimize, optimal path values calculated, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
 
     else:
@@ -704,21 +703,21 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
         # Function exits
         return errtxt,True
 
-    print "optimize, ready to show buckets, elapsed time: %.3f" % (time.time()-startOptimizeTime)
-    print "buckets - number: %s, high: %s, low: %s, size: %s - actual elev range, high:%.2f, low:%.2f" % (number_of_buckets,bucket_high,bucket_low,bucket_size,tallest_section_depth,shortest_section_depth, )
+    ###print "optimize, ready to show buckets, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+    ###print "buckets - number: %s, high: %s, low: %s, size: %s - actual elev range, high:%.2f, low:%.2f" % (number_of_buckets,bucket_high,bucket_low,bucket_size,tallest_section_depth,shortest_section_depth, )
     bucket_values = ""
     for init_depth in xrange (0, number_of_buckets, 1):
         bucket_values += "%s: [%.2f],    \n" % ((init_depth + 1), buckets[init_depth],)
-    print bucket_range
-    print bucket_values
-    print "optimize, buckets displayed, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+    ###print bucket_range
+    ###print bucket_values
+    ###print "optimize, buckets displayed, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
     # Average elevation along path
     avg_elev = sum(elev) / len(elev)
 
     # Prepare values used to update database
     output = (path,avg_elev,totalVol,dikeVol,coreVol,toeVol,foundVol,armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,bucket_high,bucket_low,number_of_buckets,buckets[0],buckets[1],buckets[2],buckets[3],buckets[4],buckets[5],buckets[6],buckets[7],buckets[8],buckets[9],buckets[10],buckets[11],buckets[12],buckets[13],buckets[14],buckets[15],buckets[16],buckets[17],buckets[18],buckets[19],tallest_section_depth,shortest_section_depth)
-    print "optimize, output prepared, returning, elapsed time: %.3f" % (time.time()-startOptimizeTime)
+    ###print "optimize, output prepared, returning, elapsed time: %.3f" % (time.time()-startOptimizeTime)
 
     # Return output and no error
     return output,False
