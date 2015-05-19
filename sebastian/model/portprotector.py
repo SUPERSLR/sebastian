@@ -582,6 +582,7 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                     current_section_length = float(old_graph[prev][v]["length"])
                     current_section_cost = old_graph[prev][v]["cost"]
                     elev.append(current_section_elev)
+
                     if current_section_elev > tallest_section_depth :
                         tallest_section_depth = current_section_elev
                     if current_section_elev < shortest_section_depth :
@@ -591,6 +592,28 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                         buckets[current_elev_bucket] += current_section_length
                     ###else :
                         ###print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,old_graph[prev][v]["cost"],current_elev_bucket + 1,)
+
+                    # Repurposing buckets 14-20 to show the length and volume of each of the 3 structure types and the length of the empty segments
+                    # This only happens if the buckets are not used.
+                    # No Structure
+                    if (number_of_buckets < 20 and old_graph[prev][v]["structure_type"] == 'none') :
+                        buckets[19] += current_section_length
+                    # Caisson
+                    if (number_of_buckets < 19 and old_graph[prev][v]["structure_type"] == 'caisson') :
+                        buckets[18] += current_section_length
+                    if (number_of_buckets < 18 and  old_graph[prev][v]["structure_type"] == 'caisson') :
+                        buckets[17] += current_section_cost
+                    # Rubble Mound
+                    if (number_of_buckets < 17 and old_graph[prev][v]["structure_type"] == 'rubblemound') :
+                        buckets[16] += current_section_length
+                    if (number_of_buckets < 16 and  old_graph[prev][v]["structure_type"] == 'rubblemound') :
+                        buckets[15] += current_section_cost
+                    # Floodwall
+                    if (number_of_buckets < 15 and old_graph[prev][v]["structure_type"] == 'floodwall') :
+                        buckets[14] += current_section_length
+                    if (number_of_buckets < 14 and  old_graph[prev][v]["structure_type"] == 'floodwall') :
+                        buckets[13] += current_section_cost
+
 
                 # Add point details to paths
                 path.append(grid[v]["latlon"])
@@ -689,6 +712,27 @@ def optimize(pid,w,h,eq,elevdata,run_type,current_structure,number_of_buckets=5,
                 ###else :
                     ###print "Warning! section is out of bucketing range, elev:%.2f, length:%.2f, cost:%.2f, attempted bucket:%s" % (current_section_elev,current_section_length,current_section_cost,current_elev_bucket + 1,)
 
+                # Repurposing buckets 14-20 to show the length and volume of each of the 3 structure types and the length of the empty segments
+                # This only happens if the buckets are not used.
+                # No Structure
+                if (number_of_buckets < 20 and graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'none') :
+                    buckets[19] += current_section_length
+                # Caisson
+                if (number_of_buckets < 19 and graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'caisson') :
+                    buckets[18] += current_section_length
+                if (number_of_buckets < 18 and  graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'caisson') :
+                    buckets[17] += current_section_cost
+                # Rubble Mound
+                if (number_of_buckets < 17 and graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'rubblemound') :
+                    buckets[16] += current_section_length
+                if (number_of_buckets < 16 and  graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'rubblemound') :
+                    buckets[15] += current_section_cost
+                # Floodwall
+                if (number_of_buckets < 15 and graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'floodwall') :
+                    buckets[14] += current_section_length
+                if (number_of_buckets < 14 and  graph[shortestPath[pt-1]][shortestPath[pt]]["vars"]["structure_type"] == 'floodwall') :
+                    buckets[13] += current_section_cost
+
             path.append(graph.node[shortestPath[pt]]["latlon"])
             pts.append(graph.node[shortestPath[pt]]["metric"])
             elev.append(float(graph.node[shortestPath[pt]]["elev"]))
@@ -749,7 +793,7 @@ def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,cor
     '''
     import time
     startUpdateDBTime = time.time()
-    print "updateDB %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startUpdateDBTime)
+    #print "updateDB %s %s, dataset %s, starting time: %.3f" % (run_type,current_structure,elevdata,startUpdateDBTime)
 
     model_table = ''
     history_table = ''
@@ -768,22 +812,22 @@ def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,cor
     selq = 'SELECT portID,timestamp,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,AsText(path_geometry),3Dfile,equation,elev_data,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth FROM %s WHERE ' % (model_table,)
     selq += 'portID=%s' % (pid)
     seldata,selrc = DBhandle.query(selq)
-    print "updateDB, previous run data selected, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
+    #print "updateDB, previous run data selected, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     for r in seldata:
         histq = "INSERT INTO %s (portID,created,attribution,avg_elev,path_length,path_volume,dike_volume,core_volume,toe_volume,foundation_volume,armor_volume,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl,path_geometry,3Dfile,equation,elev_data,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth) VALUES ('" % (history_table,)
         histq += "%(portID)s','%(timestamp)s','%(attribution)s','%(avg_elev)s','%(path_length)s','%(path_volume)s','%(dike_volume)s','%(core_volume)s','%(toe_volume)s','%(foundation_volume)s','%(armor_volume)s','%(sand_volume)s','%(gravel_volume)s','%(quarry_run_stone_volume)s','%(large_riprap_volume)s','%(small_riprap_volume)s','%(concrete_volume)s','%(structural_steel_weight)s','%(structural_steel_volume)s','%(structure_height_above_msl)s',PolyFromText('%(AsText(path_geometry))s'),'%(3Dfile)s','%(equation)s','%(elev_data)s','%(computeCenter)s','%(grid_height)s','%(grid_width)s','%(bucket_high)s','%(bucket_low)s','%(number_of_buckets)s','%(bucket_count_1)s','%(bucket_count_2)s','%(bucket_count_3)s','%(bucket_count_4)s','%(bucket_count_5)s','%(bucket_count_6)s','%(bucket_count_7)s','%(bucket_count_8)s','%(bucket_count_9)s','%(bucket_count_10)s','%(bucket_count_11)s','%(bucket_count_12)s','%(bucket_count_13)s','%(bucket_count_14)s','%(bucket_count_15)s','%(bucket_count_16)s','%(bucket_count_17)s','%(bucket_count_18)s','%(bucket_count_19)s','%(bucket_count_20)s','%(tallest_section_depth)s','%(shortest_section_depth)s')" % r
         histdata,histrc = DBhandle.query(histq)
-    print "updateDB, previous run data archived, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
+    #print "updateDB, previous run data archived, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     delq = 'DELETE FROM %s WHERE portID=%s' % (model_table,pid,)
     deldata,delrc = DBhandle.query(delq)
-    print "updateDB, previous run data deleted from primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
+    #print "updateDB, previous run data deleted from primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Create path for linestring creation
     ShortestPath = GeoUtils.Features.Path()
     ShortestPath.fromPointList(path)
-    print "updateDB, shortestPath run on features, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
+    #print "updateDB, shortestPath run on features, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Insert shortest path and volume into database
     insertq = "INSERT INTO %s (portID,attribution,avg_elev,path_length,path_volume," % (model_table,) +\
@@ -793,7 +837,7 @@ def updateDB(current_structure,run_type,ge_key,pid,path,avg_elev,vol,dikeVol,cor
     insertq += "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % (dikeVol, coreVol, toeVol, foundVol, armorVol,sand_volume,gravel_volume,quarry_run_stone_volume,large_riprap_volume,small_riprap_volume,concrete_volume,structural_steel_weight,structural_steel_volume,structure_height_above_msl)
     insertq += "PolyFromText('%s'),'','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (ShortestPath.toMySQL_linestring(),eq,elevdata,computeCenter,grid_height,grid_width,bucket_high,bucket_low,number_of_buckets,bucket_count_1,bucket_count_2,bucket_count_3,bucket_count_4,bucket_count_5,bucket_count_6,bucket_count_7,bucket_count_8,bucket_count_9,bucket_count_10,bucket_count_11,bucket_count_12,bucket_count_13,bucket_count_14,bucket_count_15,bucket_count_16,bucket_count_17,bucket_count_18,bucket_count_19,bucket_count_20,tallest_section_depth,shortest_section_depth)
     insertdata,insertrc = DBhandle.query(insertq)
-    print "updateDB, new run inserted into primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
+    #print "updateDB, new run inserted into primary, elapsed time: %.3f" % (time.time()-startUpdateDBTime)
 
     # Return success and no error
     return True,False

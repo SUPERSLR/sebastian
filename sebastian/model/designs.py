@@ -248,6 +248,8 @@ def dikeOrBermSection(length, elev, params):
 #    print "dikeOrBermSection"
     # This function has hard coded values for freeboard and maxdepth
     # They are defined in the spreadsheet with calculations for structure size and can't be modified
+    #max_depth = float(params['min_elevation'])
+    #freeboard = float(params['freeboard'])
 
     # Import math module for square roots
     import math
@@ -255,8 +257,6 @@ def dikeOrBermSection(length, elev, params):
     # Set parameters
     # sea level rise height
     slr = float(params['sea_level_rise'])
-    # freeboard height
-    freeboard = float(params['freeboard'])
     # design wave height
     wave = float(params['design_wave_height'])
     # storm surge height
@@ -265,59 +265,6 @@ def dikeOrBermSection(length, elev, params):
     highTide = float(params['mean_high_high_tide'])
     # mean low-low tide height
     lowTide = float(params['mean_low_low_tide'])
-
-
-
-    # dike flat top width
-    dikeTop = float(params['dike_flat_top'])
-    # foundation height
-    foundHt = float(params['foundation_height'])
-    # toe height
-    toeHt = float(params['toe_height'])
-    # outer toe slope
-    toeOutSlope = float(params['outer_toe_slope'])
-    # inner toe slope
-    toeInSlope = float(params['inner_toe_slope'])
-    # outer core slope
-    coreOutSlope = float(params['outer_core_slope'])
-    # inner core slope
-    coreInSlope = float(params['inner_core_slope'])
-    # core flat top
-    coreTop = float(params['core_flat_top'])
-    # core height
-    coreHt = float(params['core_height'])
-    # outer dike slope
-    dikeOutSlope = float(params['outer_dike_slope'])
-    # inner dike slope
-    dikeInSlope = float(params['inner_dike_slope'])
-    # armor depth
-    armorDepth = float(params['armor_depth'])
-
-
-
-   # triangular toe
-    toeBase = toeOutSlope * toeHt + toeInSlope * toeHt
-    toeVolume = 0.5 * toeBase * toeHt * length
-
-    # trapezoidal core
-    coreBase = coreInSlope * coreHt + coreOutSlope * coreHt + coreTop
-    coreVolume = 0.5 * (coreBase + coreTop) * coreHt * length
-
-    # trapezoidal shape
-    dikeHt = highTide + surge + wave + freeboard + slr - elev
-    dikeBase = dikeOutSlope * dikeHt + dikeInSlope * dikeHt + dikeTop
-    # volume of trapezoid, but subtract out toe and core volumes
-    dikeVolume = 0.5 * (dikeBase + dikeTop) * dikeHt * length - toeVolume - coreVolume
-
-    # foundation just a rectangle under the base
-    foundBase = toeBase + dikeBase
-    foundVolume = foundBase * foundHt * length
-
-    # armoring - find surface area of dike, then add a layer of armoring
-    outerSurfaceArea = ((dikeOutSlope * dikeHt) ** 2.0 + dikeHt ** 2.0) ** 0.5 * length
-    innerSurfaceArea = ((dikeInSlope * dikeHt) ** 2.0 + dikeHt ** 2.0) ** 0.5 * length
-    surfaceArea = outerSurfaceArea + innerSurfaceArea
-    armorVolume = surfaceArea * armorDepth
 
     sand = 0
     gravel = 0
@@ -333,19 +280,7 @@ def dikeOrBermSection(length, elev, params):
     caisson_breakwater_length = 0
     caisson_breakwater_height = 0
 
-    #TODO find the break-even point above which a berm is unneccesary
-    if dikeVolume < 0.0:
-        # This implies that the dike height is very low and the elevation is very high.
-        # Assume these areas don't really need a dike (over land). Negative numbers break
-        # the routing algorithm, so set everything to 0 (changing to .1 to encourage shorter paths -km).
-        dikeVolume = 0.10
-        coreVolume = 0.10
-        toeVolume = 0.10
-        armorVolume = 0.10
-        foundVolume = 0.10
 
-
-    max_depth = float(params['min_elevation'])
     #print "KMB2 length: %s elev: %s max_depth: %s" % (length, elev, max_depth)
 
     # havg will be different if it is for a floodwall or a breakwater
@@ -360,14 +295,15 @@ def dikeOrBermSection(length, elev, params):
     # The best option is to use a floodwall, if it's too deep, a rubble breakwater, and if it's deeper than that then a caisson breakwater
     # In order to figure out what to use, calculate the floodwall and breakwater havg, and then find the minimum required structure
 
-    dwsel = highTide + slr + surge * 1.1
+    #dwsel = highTide + slr + surge * 1.1
+    # surge from DIVA and SurgeDat both contain MHHW, so don't explicitly include it
+    dwsel = slr + surge * 1.1
 
     freeboard_floodwall = 0.9
     freeboard_breakwater = 0.6
 
     havg_floodwall = dwsel + freeboard_floodwall - elev - 0.5
     havg_breakwater = dwsel + freeboard_breakwater - elev
-
 
     cantilever_floodwall_min_havg = 0.0
     cantilever_floodwall_min_height = 2.0
@@ -381,8 +317,10 @@ def dikeOrBermSection(length, elev, params):
 
     elev_no_structure_needed = dwsel + freeboard_floodwall
     no_structure_needed_optimization_cost = 0
+    structure_type = 'none'
 
     if havg_floodwall <= cantilever_floodwall_max_height and elev < elev_no_structure_needed  :
+        structure_type = 'floodwall'
         #print "berm"
         cantilever_floodwall_length = length #E10
         if havg_floodwall > cantilever_floodwall_min_height :
@@ -394,6 +332,7 @@ def dikeOrBermSection(length, elev, params):
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
     elif havg_breakwater > rubble_breakwater_min_havg and havg_breakwater <= rubble_breakwater_max_height :
+        structure_type = 'rubblemound'
         #print "rubble mound breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -404,7 +343,9 @@ def dikeOrBermSection(length, elev, params):
             rubble_breakwater_height = rubble_breakwater_min_height #E13
         caisson_breakwater_length = 0 #E14
         caisson_breakwater_height = 0 #E15
-    elif havg_breakwater >= caisson_breakwater_min_havg and havg_breakwater <= caisson_breakwater_max_height :
+    #elif havg_breakwater >= caisson_breakwater_min_havg and havg_breakwater <= caisson_breakwater_max_height :
+    elif havg_breakwater >= caisson_breakwater_min_havg and -elev <= caisson_breakwater_max_height :
+        structure_type = 'caisson'
         #print "deep breakwater"
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -412,19 +353,24 @@ def dikeOrBermSection(length, elev, params):
         rubble_breakwater_height = 0 #E13
         caisson_breakwater_length = length #E14
         caisson_breakwater_height = havg_breakwater #E15
-    elif havg_breakwater > caisson_breakwater_max_height :
-        #print "error, water too deep"
+    # It was decided that the caisson breakwater can be as tall as it needs
+    # to be, but can only be in water up to -60 m.  This is handled upstream,
+    # as deeper than -60 sections should have been removed before simulation.
+    #elif havg_breakwater > caisson_breakwater_max_height :
+    elif -elev > caisson_breakwater_max_height :
+        print "error, water too deep"
         #TODO: how to return deep error?
-        cantilever_floodwall_length = 0 #E10
-        cantilever_floodwall_height = 0 #E11
-        rubble_breakwater_length = 0 #E12
-        rubble_breakwater_height = 0 #E13
-        caisson_breakwater_length = 0 #E14
-        caisson_breakwater_height = 0 #E15
+        cantilever_floodwall_length = 99999999 #E10
+        cantilever_floodwall_height = 99999999 #E11
+        rubble_breakwater_length = 99999999 #E12
+        rubble_breakwater_height = 99999999 #E13
+        caisson_breakwater_length = 99999999 #E14
+        caisson_breakwater_height = 99999999 #E15
     else :
         # Existing Grade (EG) is greater than Design Water Surface ELevation (DWSEL), no structure needed
         #print "safe elevation, no structure needed"
-        #TODO: verify cost is only a minimum optimization cost based on length
+        # Add a small value to volume per unit length to avoid long
+        # paths which all have equivalent 0 cost
         no_structure_needed_optimization_cost = length / 9999.0
         cantilever_floodwall_length = 0 #E10
         cantilever_floodwall_height = 0 #E11
@@ -436,32 +382,6 @@ def dikeOrBermSection(length, elev, params):
 
     density_of_steel = 7850 # kg/m3 #$LUTs.D$3
     density_of_concrete = 2400 # kg/m3 #$LUTs.D$4
-
-    #print 'elev'
-    #print elev
-    #print 'dwsel'
-    #print dwsel
-    #print 'havg_floodwall'
-    #print havg_floodwall
-    #print 'havg_breakwater'
-    #print havg_breakwater
-    #print 'cantilever_floodwall_length'
-    #print cantilever_floodwall_length
-    #print 'cantilever_floodwall_height'
-    #print cantilever_floodwall_height
-    #print 'rubble_breakwater_length'
-    #print rubble_breakwater_length
-    #print 'rubble_breakwater_height'
-    #print rubble_breakwater_height
-    #print 'caisson_breakwater_length'
-    #print caisson_breakwater_length
-    #print 'caisson_breakwater_height'
-    #print caisson_breakwater_height
-
-
-    #NOTE TODO Update elev calculations
-    #TODO resolve elev direction and total after MHHW.  Considered height and positive for spreadsheet
-    #TODO find and code freeboard
 
     # Caisson Breakwater Parameters
     #moved up to avoid ordering conflicts
@@ -801,25 +721,9 @@ def dikeOrBermSection(length, elev, params):
     foundVolume = 1;
     armorVolume = 1;
 
-    #print 'sand_volume'
-    #print sand
-    #print 'gravel_volume'
-    #print gravel
-    #print 'quarry_run_stone_volume'
-    #print quarry_run_stone
-    #print 'large_riprap_volume'
-    #print large_riprap
-    #print 'small_riprap_volume'
-    #print small_riprap
-    #print 'concrete_volume'
-    #print concrete
-    #print 'structural_steel_weight'
-    #print structural_steel
-    #print 'structural_steel_volume'
-    #print structural_steel_volume
-
     # for purposes of the algorithm, the dike volume can proxy for the cost
     return {
+               'structure_type': structure_type,
                'sand_volume': sand,
                'gravel_volume': gravel,
                'quarry_run_stone_volume': quarry_run_stone,

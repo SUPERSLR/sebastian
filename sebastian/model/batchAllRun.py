@@ -199,6 +199,7 @@ if __name__ == "__main__":
                     ShortestPath.fromPointList(path)
                     print "path_length: %s" % (ShortestPath.length(),)
                     print "path_volume: %s" % (vol,)
+                    print "0len:[%0.2f] C_len:[%0.2f] C_vol:[%0.2f]  R_len:[%0.2f] R_vol:[%0.2f]  F_len:[%0.2f] F_vol:[%0.2f]" % (bucket_count_20, bucket_count_19, bucket_count_18, bucket_count_17, bucket_count_16, bucket_count_15, bucket_count_14,)
                     print "computeCenter: %s\n\n" % (GeoUtils.constants.computeCenter(),)
 
                     ###print error
